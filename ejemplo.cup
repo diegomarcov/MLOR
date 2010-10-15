@@ -1,0 +1,42 @@
+import java_cup.runtime.*;
+import java.io.*;
+
+parser code 
+{:
+	public static void main(String args[])
+	{
+		try
+		{
+			new parser(new Yylex(System.in)).parse();
+		}
+		catch (Exception e)
+		{
+			System.err.println(e.getMessage());
+		}
+	}
+:}
+
+terminal MAS,POR,PTOCOMA,PARENA,PARENC;
+terminal Integer NUMERO;
+
+non terminal Integer Expr;
+non terminal Lista;
+
+precedence left MAS;
+precedence left POR;
+
+Lista ::=	Lista 
+			Expr:e {: System.out.println(" = "+e+";"); :}
+			PTOCOMA 
+			| Expr:e {: System.out.println(" = "+e+";"); :}
+			PTOCOMA
+			;
+
+Expr ::=	NUMERO:n {: RESULT=n; :}
+			| Expr:e1 MAS Expr:e2 
+			{: RESULT = new Integer(e1.intValue()+e2.intValue()); :}
+			| Expr:e1 POR Expr:e2 
+			{: RESULT = new Integer(e1.intValue()*e2.intValue()); :}
+			| PARENA Expr:e PARENC
+			{: RESULT = e; :}
+			;

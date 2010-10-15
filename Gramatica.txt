@@ -1,0 +1,93 @@
+<Programa> ::= <Lista_sentencias> PUNTO
+
+<Lista_sentencias> ::= <Lista_sentencias> <Sentencia> PTOCOMA | <Sentencia> PTOCOMA
+
+<Sentencia> ::= VAL ID = <Exp_Rel> | <Exp_Rel> | FUN <MatchingFunc>	
+
+<MatchingFunc> ::= ID ID <CurryingList> | ID <TuplePattern> IGUAL <Exp_Rel>
+
+<CurryingList> ::= ID <CurryingList> | IGUAL <Exp_Rel>
+
+<TuplePattern> ::= PARABRE <TuplePattern2> PARCIERRA
+
+<TuplePattern2> ::= <TuplePattern2> COMA ID  | ID
+
+<Exp_Rel>  	::= 	<Exp_Rel> MENOR <Exp_cons> | <Exp_Rel> MAYOR <Exp_cons> | <Exp_Rel> MENORIGUAL <Exp_cons> |
+				<Exp_Rel> MAYORIGUAL <Exp_cons> | <Exp_Rel> DISTINTO <Exp_cons> | <Exp_Rel> IGUAL <Exp_cons> | <Exp_cons>
+				
+<Exp_cons> 	::=	<Exp_cons> CONS <Exp_add> | <Exp_add>
+
+<Exp_add>  	::=	<Exp_add> SUMA <Exp_mul> | <Exp_add> RESTA <Exp_mul> | 
+				<Exp_add> ORELSE <Exp_mul> | <Exp_add> CONCAT <Exp_mul> | <Exp_mul>
+
+<Exp_mul>  	::=	<Exp_mul> MUL <Exp_un> | <Exp_mul> DIVREAL <Exp_un> | <Exp_mul> DIVINT <Exp_un> |
+				<Exp_mul> MOD <Exp_un> | <Exp_mul> ANDALSO <Exp_un> | <Exp_un>
+
+<Exp_un>   	::=	NOT <Exp_fun> | MINUS<Exp_fun> | <Exp_fun>
+
+<Exp_fun>  	::= 	<Exp_fun> <Exp_atom> | <Exp_atom>
+
+<Exp_atom>	::=	INT | REAL | STRING | ID | NIL | PARABRE <Exp_Rel> PARCIERRA | <Tuple> | <List>
+
+<Tuple> 	::= PARABRE <Exp_Rel>COMA <Tuple2> PARCIERRA
+
+<Tuple2> 	::= <Tuple2>COMA <Exp_Rel> | <Exp_Rel>
+
+<List> 		::= CORABRE <List2> CORCIERRA
+
+<List2> 	::= <List2> COMA <Exp_Rel> | <Exp_Rel>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Programa ::= Lista_sentencias PUNTO
+
+Lista_sentencias ::= Lista_sentencias Sentencia PTOCOMA | Sentencia PTOCOMA
+
+Sentencia ::= VAL ID = Exp_Rel | Exp_Rel | FUN MatchingFunc	
+
+MatchingFunc ::= ID ID CurryingList | ID TuplePattern IGUAL Exp_Rel
+
+CurryingList ::= ID CurryingList | IGUAL Exp_Rel
+
+TuplePattern ::= PARABRE TuplePattern2 PARCIERRA
+
+TuplePattern2 ::= TuplePattern2 COMA ID  | ID
+
+Exp_Rel  	::= 	Exp_Rel MENOR Exp_cons | Exp_Rel MAYOR Exp_cons | Exp_Rel MENORIGUAL Exp_cons |
+				Exp_Rel MAYORIGUAL Exp_cons | Exp_Rel DISTINTO Exp_cons | Exp_Rel IGUAL Exp_cons | Exp_cons
+				
+Exp_cons 	::=	Exp_cons CONS Exp_add | Exp_add
+
+Exp_add  	::=	Exp_add SUMA Exp_mul | Exp_add RESTA Exp_mul | 
+				Exp_add ORELSE Exp_mul | Exp_add CONCAT Exp_mul | Exp_mul
+
+Exp_mul  	::=	Exp_mul MUL Exp_un | Exp_mul DIVREAL Exp_un | Exp_mul DIVINT Exp_un |
+				Exp_mul MOD Exp_un | Exp_mul ANDALSO Exp_un | Exp_un
+
+Exp_un   	::=	NOT Exp_fun | MINUSExp_fun | Exp_fun
+
+Exp_fun  	::= 	Exp_fun Exp_atom | Exp_atom
+
+Exp_atom	::=	INT | REAL | STRING | ID | NIL | PARABRE Exp_Rel PARCIERRA | Tuple | List
+
+Tuple 	::= PARABRE ExpCOMA Tuple2 PARCIERRA
+
+Tuple2 	::= Tuple2COMA Exp | Exp
+
+List 		::= CORABRE List2 CORCIERRA
+
+List2 	::= List2 COMA Exp | Exp
