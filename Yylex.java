@@ -349,11 +349,11 @@ class Yylex implements java_cup.runtime.Scanner {
 					case -2:
 						break;
 					case 2:
-						{ return new Symbol(sym.PUNTO);}
+						{ return new Symbol(sym.PUNTO, new Token(sym.PUNTO, yytext(), yyline+1));}
 					case -3:
 						break;
 					case 3:
-						{ return new Symbol(sym.PTOCOMA);}
+						{ return new Symbol(sym.PTOCOMA, new Token(sym.PTOCOMA, yytext(), yyline+1));}
 					case -4:
 						break;
 					case 4:
@@ -361,15 +361,15 @@ class Yylex implements java_cup.runtime.Scanner {
 					case -5:
 						break;
 					case 5:
-						{ return new Symbol(sym.COMA);}
+						{ return new Symbol(sym.COMA, new Token(sym.COMA, yytext(), yyline+1));}
 					case -6:
 						break;
 					case 6:
-						{ return new Symbol(sym.MENOR);}
+						{ return new Symbol(sym.MENOR, new Token(sym.MENOR, yytext(), yyline+1));}
 					case -7:
 						break;
 					case 7:
-						{ return new Symbol(sym.MAYOR);}
+						{ return new Symbol(sym.MAYOR, new Token(sym.MAYOR, yytext(), yyline+1));}
 					case -8:
 						break;
 					case 8:
@@ -377,23 +377,23 @@ class Yylex implements java_cup.runtime.Scanner {
 					case -9:
 						break;
 					case 9:
-						{ return new Symbol(sym.SUMA);}
+						{ return new Symbol(sym.SUMA, new Token(sym.SUMA, yytext(), yyline+1));}
 					case -10:
 						break;
 					case 10:
-						{ return new Symbol(sym.RESTA);}
+						{ return new Symbol(sym.RESTA, new Token(sym.RESTA, yytext(), yyline+1));}
 					case -11:
 						break;
 					case 11:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -12:
 						break;
 					case 12:
-						{ return new Symbol(sym.DIVREAL);}
+						{ return new Symbol(sym.DIVREAL, new Token(sym.DIVREAL, yytext(), yyline+1));}
 					case -13:
 						break;
 					case 13:
-						{ return new Symbol(sym.MUL);}
+						{ return new Symbol(sym.MUL, new Token(sym.MUL, yytext(), yyline+1));}
 					case -14:
 						break;
 					case 14:
@@ -401,27 +401,27 @@ class Yylex implements java_cup.runtime.Scanner {
 					case -15:
 						break;
 					case 15:
-						{ return new Symbol(sym.CONCAT);}
+						{ return new Symbol(sym.CONCAT, new Token(sym.CONCAT, yytext(), yyline+1));}
 					case -16:
 						break;
 					case 16:
-						{ return new Symbol(sym.MINUS);}
+						{ return new Symbol(sym.MINUS, new Token(sym.MINUS, yytext(), yyline+1));}
 					case -17:
 						break;
 					case 17:
-						{ return new Symbol(sym.PARABRE);}
+						{ return new Symbol(sym.PARABRE, new Token(sym.PARABRE, yytext(), yyline+1));}
 					case -18:
 						break;
 					case 18:
-						{ return new Symbol(sym.PARCIERRA);}
+						{ return new Symbol(sym.PARCIERRA, new Token(sym.PARCIERRA, yytext(), yyline+1));}
 					case -19:
 						break;
 					case 19:
-						{ return new Symbol(sym.CORABRE);}
+						{ return new Symbol(sym.CORABRE, new Token(sym.CORABRE, yytext(), yyline+1));}
 					case -20:
 						break;
 					case 20:
-						{ return new Symbol(sym.CORCIERRA);}
+						{ return new Symbol(sym.CORCIERRA, new Token(sym.CORCIERRA, yytext(), yyline+1));}
 					case -21:
 						break;
 					case 21:
@@ -429,19 +429,19 @@ class Yylex implements java_cup.runtime.Scanner {
 					case -22:
 						break;
 					case 22:
-						{ return new Symbol(sym.MENORIGUAL);}
+						{ return new Symbol(sym.MENORIGUAL, new Token(sym.MENORIGUAL, yytext(), yyline+1));}
 					case -23:
 						break;
 					case 23:
-						{ return new Symbol(sym.DISTINTO);}
+						{ return new Symbol(sym.DISTINTO, new Token(sym.DISTINTO, yytext(), yyline+1));}
 					case -24:
 						break;
 					case 24:
-						{ return new Symbol(sym.MAYORIGUAL);}
+						{ return new Symbol(sym.MAYORIGUAL, new Token(sym.MAYORIGUAL, yytext(), yyline+1));}
 					case -25:
 						break;
 					case 25:
-						{ return new Symbol(sym.CONS);}
+						{ return new Symbol(sym.CONS, new Token(sym.CONS, yytext(), yyline+1));}
 					case -26:
 						break;
 					case 26:
@@ -449,27 +449,27 @@ class Yylex implements java_cup.runtime.Scanner {
 					case -27:
 						break;
 					case 27:
-						{ return new Symbol(sym.DIVINT);}
+						{ return new Symbol(sym.DIVINT, new Token(sym.DIVINT, yytext(), yyline+1));}
 					case -28:
 						break;
 					case 28:
-						{ return new Symbol(sym.VAL);}
+						{ return new Symbol(sym.VAL, new Token(sym.VAL, yytext(), yyline+1));}
 					case -29:
 						break;
 					case 29:
-						{ return new Symbol(sym.MOD);}
+						{ return new Symbol(sym.MOD, new Token(sym.MOD, yytext(), yyline+1));}
 					case -30:
 						break;
 					case 30:
-						{ return new Symbol(sym.NOT);}
+						{ return new Symbol(sym.NOT, new Token(sym.NOT, yytext(), yyline+1));}
 					case -31:
 						break;
 					case 31:
-						{ return new Symbol(sym.NIL);}
+						{ return new Symbol(sym.NIL, new Token(sym.NIL, yytext(), yyline+1));}
 					case -32:
 						break;
 					case 32:
-						{ return new Symbol(sym.FUN);}
+						{ return new Symbol(sym.FUN, new Token(sym.FUN, yytext(), yyline+1));}
 					case -33:
 						break;
 					case 33:
@@ -477,11 +477,11 @@ class Yylex implements java_cup.runtime.Scanner {
 					case -34:
 						break;
 					case 34:
-						{ return new Symbol(sym.ANDALSO);}
+						{ return new Symbol(sym.ANDALSO, new Token(sym.ANDALSO, yytext(), yyline+1));}
 					case -35:
 						break;
 					case 35:
-						{ return new Symbol(sym.ORELSE);}
+						{ return new Symbol(sym.ORELSE, new Token(sym.ORELSE, yytext(), yyline+1));}
 					case -36:
 						break;
 					case 37:
@@ -489,7 +489,7 @@ class Yylex implements java_cup.runtime.Scanner {
 					case -37:
 						break;
 					case 38:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -38:
 						break;
 					case 40:
@@ -497,91 +497,91 @@ class Yylex implements java_cup.runtime.Scanner {
 					case -39:
 						break;
 					case 41:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -40:
 						break;
 					case 43:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -41:
 						break;
 					case 45:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -42:
 						break;
 					case 46:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -43:
 						break;
 					case 47:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -44:
 						break;
 					case 48:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -45:
 						break;
 					case 49:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -46:
 						break;
 					case 50:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -47:
 						break;
 					case 51:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -48:
 						break;
 					case 52:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -49:
 						break;
 					case 53:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -50:
 						break;
 					case 54:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -51:
 						break;
 					case 55:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -52:
 						break;
 					case 56:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -53:
 						break;
 					case 57:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -54:
 						break;
 					case 58:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -55:
 						break;
 					case 59:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -56:
 						break;
 					case 60:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -57:
 						break;
 					case 61:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -58:
 						break;
 					case 62:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -59:
 						break;
 					case 63:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -60:
 						break;
 					case 64:
-						{ return new Symbol(sym.ID, yytext());}
+						{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 					case -61:
 						break;
 					default:
