@@ -22,7 +22,7 @@ parser code
 	}
 :}
 
-terminal PUNTO, PTOCOMA, IGUAL, COMA, DISTINTO, MENORIGUAL, MENOR, MAYORIGUAL, MAYOR, CONS, SUMA, RESTA, ORELSE, CONCAT, MUL, DIVREAL, DIVINT, MOD, ANDALSO, NOT, MINUS, PARABRE, PARCIERRA, CORABRE, CORCIERRA, NIL, FUN, VAL, ID;
+terminal Token PUNTO, PTOCOMA, IGUAL, COMA, DISTINTO, MENORIGUAL, MENOR, MAYORIGUAL, MAYOR, CONS, SUMA, RESTA, ORELSE, CONCAT, MUL, DIVREAL, DIVINT, MOD, ANDALSO, NOT, MINUS, PARABRE, PARCIERRA, CORABRE, CORCIERRA, NIL, FUN, VAL, ID;
 terminal Integer INT;
 terminal Real REAL;
 terminal String STRING;
@@ -31,14 +31,36 @@ non terminal Programa, Lista_sentencias;
 
 non terminal Attrs Sentencia, MatchingFunc, CurryingList, TuplePattern, TuplePattern2, Exp_Rel, Exp_cons, Exp_add, Exp_mul, Exp_un, Exp_fun, Exp_atom, Tuple, Tuple2, List, List2;
 
-Programa ::= 	{: 	symbolTable=new Hashtable(); 
+Programa ::= 	{: System.out.println("LEYENDO EL PUTO PUNTO"); :} 
+				PUNTO 
+				{: System.out.println("PUTO EL QUE PUNTO"); :} 
+				|
+				{: 	
+					symbolTable=new Hashtable(); 
 					System.out.println("Succesfully created symbol table!"); 
 				:} 
-				Lista_sentencias PUNTO;
+				Lista_sentencias 	{: System.out.println("Succesfully parsed!"); :} 
+				PUNTO	{: System.out.println("PUNTO found!"); :} 
+				;
 
-Lista_sentencias ::= 	Lista_sentencias Sentencia PTOCOMA | Sentencia PTOCOMA;
+Lista_sentencias ::= 	Lista_sentencias 
+						Sentencia 
+						PTOCOMA 
+						| 
+						{: System.out.println("Entrando a leer Sentencia"); :}
+						Sentencia 
+						PTOCOMA	{: System.out.println("; found!"); :}
+						;
 
-Sentencia ::= VAL ID IGUAL Exp_Rel | Exp_Rel | FUN MatchingFunc;
+Sentencia ::= 	VAL {: System.out.println("VAL found!"); :}
+				ID 	{: System.out.println("ID found!"); :}
+				IGUAL 	{: System.out.println("= found!"); :}
+				Exp_Rel {: System.out.println("Rest of Exp_Rel found!"); :}
+				| 
+				Exp_Rel 
+				| 
+				FUN 
+				MatchingFunc;
 
 MatchingFunc ::= ID ID CurryingList | ID TuplePattern IGUAL Exp_Rel;
 
