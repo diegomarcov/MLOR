@@ -9,6 +9,7 @@ import java_cup.runtime.Symbol;
 %yylexthrow{Exception
 %yylexthrow}
 
+PUNTO = \.
 NUMERO = [0-9]+
 BLANCOS = [ \t\r\n\f]+
 REAL = [0-9]+\.[0-9]+
@@ -16,7 +17,7 @@ STRING = \".*\"
 ID = [a-z][a-z_0-9]*
 %%
 
-"."			{ return new Symbol(sym.PUNTO, new Token(sym.PUNTO, yytext(), yyline+1));}
+{PUNTO}		{ return new Symbol(sym.PUNTO, new Token(sym.PUNTO, yytext(), yyline+1));}
 ";"			{ return new Symbol(sym.PTOCOMA, new Token(sym.PTOCOMA, yytext(), yyline+1));}
 "="			{ return new Symbol(sym.IGUAL);}
 ","			{ return new Symbol(sym.COMA, new Token(sym.COMA, yytext(), yyline+1));}

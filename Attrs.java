@@ -4,6 +4,8 @@ public class Attrs{
 	int intValue;
 	float floatValue;
 	Boolean boolValue;
+	String stringValue;
+	String identifierName;
 	
 	public Attrs(String type,String value){
 		this.type=type;
@@ -15,7 +17,13 @@ public class Attrs{
 			if (this.type.compareTo("float")==0)
 				this.floatValue=Float.parseFloat(value);
 			else
-				this.boolValue=Boolean.parseBoolean(value);
+				if (this.type.compareTo("String")==0)
+					this.stringValue = value;
+				else
+					if (this.type.compareTo("identifier")==0)
+						this.identifierName = value;
+					else
+						this.boolValue=Boolean.parseBoolean(value);
 	}
 
 	

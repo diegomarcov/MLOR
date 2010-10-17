@@ -13,7 +13,7 @@ public class Token {
 		return this.line;
 	}
 	
-	public int getType (){
+	public int getType(){
 		return this.type;
 	}
 	
