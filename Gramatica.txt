@@ -15,7 +15,7 @@
 <Exp_Rel>  	::= 	<Exp_Rel> MENOR <Exp_cons> | <Exp_Rel> MAYOR <Exp_cons> | <Exp_Rel> MENORIGUAL <Exp_cons> |
 				<Exp_Rel> MAYORIGUAL <Exp_cons> | <Exp_Rel> DISTINTO <Exp_cons> | <Exp_Rel> IGUAL <Exp_cons> | <Exp_cons>
 				
-<Exp_cons> 	::=	<Exp_cons> CONS <Exp_add> | <Exp_add>
+<Exp_cons> 	::=	<Exp_add> CONS <Exp_cons>| <Exp_add>
 
 <Exp_add>  	::=	<Exp_add> SUMA <Exp_mul> | <Exp_add> RESTA <Exp_mul> | 
 				<Exp_add> ORELSE <Exp_mul> | <Exp_add> CONCAT <Exp_mul> | <Exp_mul>

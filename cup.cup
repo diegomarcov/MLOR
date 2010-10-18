@@ -5,7 +5,43 @@ import java.util.*;
 
 action code
 {:
-	Hashtable symbolTable;
+	Hashtable st,localST;
+	
+	private boolean putLocalID(String id){
+		if (localST.get(id)!=null){
+			localST.put(id,new Attrs("politipo"));
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	
+	private Attrs tipoMasEspecifico(Attrs type1, Attrs type2){
+		if (type1.getType().equals(type2.getType())){
+			return type1;
+		}else{
+			if (type1.getType() == "politipo" || type1.getType() == "politipo con igualdad"){
+				return type2;
+			}
+			else if (type2.getType() == "politipo" || type2.getType() == "politipo con igualdad")
+				return type1;
+			else if (type1.getType() == "politipo numerico" ){
+				if (type2.getType() == "int" || type2.getType() == "real")
+					return type2;
+				else 
+					return null;
+			}
+			else if (type2.getType() == "politipo numerico" ){
+				if (type1.getType() == "int" || type1.getType() == "real")
+					return type1;
+				else 
+					return null;
+			}
+			else
+				return null;
+		}
+	}
 :}
 
 parser code 
@@ -21,6 +57,8 @@ parser code
 			System.err.println(e.getMessage());
 		}
 	}
+	
+	
 :}
 
 terminal Token PUNTO, PTOCOMA, IGUAL, COMA, OPREL, CONS, OPADD, ORELSE, CONCAT, MUL, DIVREAL, DIVINT, MOD, ANDALSO, NOT, MINUS, PARABRE, PARCIERRA, CORABRE, CORCIERRA, NIL, FUN, VAL, ID, INT, REAL, STRING;
@@ -30,7 +68,7 @@ non terminal Programa, Lista_sentencias;
 non terminal Attrs Sentencia, MatchingFunc, CurryingList, TuplePattern, TuplePattern2, Exp_Rel, Exp_cons, Exp_add, Exp_mul, Exp_un, Exp_fun, Exp_atom, Tuple, Tuple2, List, List2;
 
 Programa ::= 	{: 	
-					symbolTable=new Hashtable(); 
+					st=new Hashtable(); 
 					System.out.println("Succesfully created symbol table!"); 
 				:} 
 				Lista_sentencias 	{: System.out.println("Succesfully parsed!"); :} 
@@ -46,27 +84,41 @@ Lista_sentencias ::= 	Lista_sentencias
 						PTOCOMA	{: System.out.println("; found!"); :}
 						;
 
-Sentencia ::= 	VAL {: System.out.println("VAL found!"); :}
-				ID 	{: System.out.println("ID found!"); :}
+Sentencia ::= 	VAL {: System.out.println("VAL found!");:}
+				ID:id	{: System.out.println("ID found!"); :}
 				IGUAL 	{: System.out.println("= found!"); :}
-				Exp_Rel {: System.out.println("Rest of Exp_Rel found!"); :}
+				Exp_Rel:exp {: System.out.println("Rest of Exp_Rel found!"); 
+						st.put(id.getLexeme(),exp);:}
 				| 
-				Exp_Rel 
+				Exp_Rel:exp {:st.put("it",exp);:}
 				| 
+				{: localST = new Hashtable(); :}
 				FUN 
-				MatchingFunc;
+				MatchingFunc
+				{: localST = null; :}
+				;
 
-MatchingFunc ::= ID ID CurryingList | ID TuplePattern IGUAL Exp_Rel;
+MatchingFunc ::= ID:f ID:param {:putLocalID(param.getLexeme());:}
+				CurryingList:list  {:st.put(f.getLexeme(),new Attrs("fun",(Attrs)localST.get(param.getLexeme()), list)); :}
+				| 
+				ID:f
+				TuplePattern:tuple
+				IGUAL
+				Exp_Rel:exp {:st.put(f.getLexeme(), new Attrs("fun",tuple,exp));:};
 
-CurryingList ::= ID CurryingList | IGUAL Exp_Rel;
+CurryingList ::= ID:id {:putLocalID(id.getLexeme());:}
+				CurryingList:list {:RESULT = new Attrs("fun",(Attrs)localST.get(id.getLexeme()),list);:}
+				| IGUAL Exp_Rel:exp {:RESULT = exp;:};
 
-TuplePattern ::= PARABRE TuplePattern2 PARCIERRA;
+TuplePattern ::= PARABRE TuplePattern2:tp PARCIERRA{:RESULT = tp; :};
 
-TuplePattern2 ::= TuplePattern2 COMA ID  | ID;
+TuplePattern2 ::= TuplePattern2 COMA ID:id {:putLocalID(id.getLexeme());:}  
+					| 
+					ID:id {:putLocalID(id.getLexeme());:};
 
 Exp_Rel  	::= Exp_Rel OPREL Exp_cons| Exp_Rel IGUAL Exp_cons | Exp_cons;
 				
-Exp_cons 	::=	Exp_cons CONS Exp_add | Exp_add;
+Exp_cons 	::=	Exp_add CONS Exp_cons | Exp_add;
 
 Exp_add  	::=	Exp_add OPADD Exp_mul | 
 				Exp_add ORELSE Exp_mul | Exp_add CONCAT Exp_mul | Exp_mul;
@@ -74,9 +126,40 @@ Exp_add  	::=	Exp_add OPADD Exp_mul |
 Exp_mul  	::=	Exp_mul MUL Exp_un | Exp_mul DIVREAL Exp_un | Exp_mul DIVINT Exp_un |
 				Exp_mul MOD Exp_un | Exp_mul ANDALSO Exp_un | Exp_un;
 
-Exp_un   	::=	NOT Exp_fun | MINUS Exp_fun | Exp_fun;
+Exp_un   	::=	NOT Exp_fun:fun 
+				{: 	if (tipoMasEspecifico(fun, new Attrs("boolean"))!=null){
+						RESULT = fun;
+					}else{
+						throw new Exception("Not a valid function!");
+					}
+				:}
+				| 
+				MINUS Exp_fun:fun 
+				{: 	
+					Attrs t = tipoMasEspecifico(fun, new Attrs("politipo numerico"));
+					if (t != null){
+						RESULT = t;
+					}else{
+						throw new Exception("Not a valid function!");
+					}
+				:}
+				| 
+				Exp_fun;
 
-Exp_fun  	::= 	Exp_fun Exp_atom | Exp_atom;
+Exp_fun  	::= Exp_fun:f Exp_atom:atom
+				{: 	if (f.getType().equals("fun")){
+						if (tipoMasEspecifico(f.getDomain(), atom)!=null){
+						// hay que checkear para cambiar el tipo de atom _O_ las variables de f!
+							RESULT = f.getRange();
+						}else{
+							throw new Exception("Invalid parameter type!");
+						}
+					}else{
+						throw new Exception("Not a valid function!");
+					}
+				:}
+				| 
+				Exp_atom:atom {: RESULT = atom; :};
 
 Exp_atom	::=	INT:i {: RESULT = new Attrs("int") ;:}
 				| 
@@ -89,16 +172,26 @@ Exp_atom	::=	INT:i {: RESULT = new Attrs("int") ;:}
 				NIL {: RESULT = new Attrs("list") ;:}
 				| 
 				PARABRE 
-				Exp_Rel 
+				Exp_Rel:e {: RESULT = e; :}
 				PARCIERRA 
 				| 
-				Tuple 
+				Tuple:t {:RESULT = t; :} 
 				| 
-				List;
+				List:l {:RESULT = l; :};
 
-Tuple 	::= PARABRE Exp_Rel COMA Tuple2 PARCIERRA;
+Tuple 	::= PARABRE Exp_Rel:e COMA Tuple2:t2 PARCIERRA {:t2.addTupleTypeBegin(e);
+														RESULT = t2; :};
 
-Tuple2 	::= Tuple2 COMA Exp_Rel | Exp_Rel;
+Tuple2 	::= Tuple2:t COMA Exp_Rel:e 
+			{:
+				t.addTupleTypeFinal(e);
+				RESULT = t;
+			:}
+			| 
+			Exp_Rel:e {: 	Attrs t = new Attrs("tuple", new ArrayList());
+							t.addTupleTypeBegin(e);
+							RESULT = t;
+			:};
 
 List 		::= CORABRE List2 CORCIERRA;
 

@@ -2,61 +2,75 @@ import java.util.*;
 
 public class Attrs{
 	String type;
-	String listType;
-	LinkedList tupleTypes;
+	Attrs listType;
+	ArrayList<Attrs> tupleTypes;
 	
-	String funDomain;
-	String funRange;
+	Attrs funDomain;
+	Attrs funRange;
 	
 	public Attrs(String type){
 		this.type=type;
-		this.listType = "";
-		this.funDomain = "";
-		this.funRange = "";
-		this.tupleTypes = new LinkedList();
+		this.listType = null;
+		this.funDomain = null;
+		this.funRange = null;
+		this.tupleTypes = null;
 	}
 	
-	public Attrs(String type, String domain, String range){
+	public Attrs(String type, Attrs domain, Attrs range){
 		this.type=type;
-		this.listType = "";
+		this.listType = null;
 		this.funDomain = domain;
 		this.funRange = range;
-		this.tupleTypes = new LinkedList();
+		this.tupleTypes = null;
 	}
 	
-	public Attrs(String type, String listType){
+	public Attrs(String type, Attrs listType){
 		this.type=type;
 		this.listType = listType;
-		this.funDomain = "";
-		this.funRange = "";
-		this.tupleTypes = new LinkedList();
+		this.funDomain = null;
+		this.funRange = null;
+		this.tupleTypes = null;
 	}
 	
-	public void setListType(String type){
-		this.listType = type;
+	public Attrs(String type, ArrayList typeList){
+		this.type=type;
+		this.listType = null;
+		this.funDomain = null;
+		this.funRange = null;
+		this.tupleTypes = typeList;
 	}
 	
-	public String getListType(){
+	public void setListType(Attrs listType){
+		this.listType = listType;
+	}
+	
+	public Attrs getListType(){
 		return listType;
 	}
 	
-	public LinkedList getTupleTypes(){
+	public ArrayList getTupleTypes(){
 		return tupleTypes;
 	}
 	
-	public String getDomain(){
+	public Attrs getDomain(){
 		return funDomain;
 	}
 	
-	public String getRange(){
+	public Attrs getRange(){
 		return funRange;
 	}
 	
-	public void addTupletype(String type){
+	public void addTupleTypeBegin(Attrs type){
+		this.tupleTypes.add(0,type);
+	}
+	
+	public void addTupleTypeFinal(Attrs type){
 		this.tupleTypes.add(type);
 	}
 
 	public String getType(){
 		return this.type;
 	}
+	
+
 }
