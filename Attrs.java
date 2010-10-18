@@ -1,64 +1,62 @@
+import java.util.*;
 
 public class Attrs{
 	String type;
-	int intValue;
-	float floatValue;
-	Boolean boolValue;
-	String stringValue;
-	String identifierName;
+	String listType;
+	LinkedList tupleTypes;
 	
-	public Attrs(String type,String value){
+	String funDomain;
+	String funRange;
+	
+	public Attrs(String type){
 		this.type=type;
-		this.intValue=0;
-		this.boolValue=false;
-		if(this.type.compareTo("int")==0)
-			this.intValue=Integer.parseInt(value);
-		else
-			if (this.type.compareTo("float")==0)
-				this.floatValue=Float.parseFloat(value);
-			else
-				if (this.type.compareTo("String")==0)
-					this.stringValue = value;
-				else
-					if (this.type.compareTo("identifier")==0)
-						this.identifierName = value;
-					else
-						this.boolValue=Boolean.parseBoolean(value);
+		this.listType = "";
+		this.funDomain = "";
+		this.funRange = "";
+		this.tupleTypes = new LinkedList();
+	}
+	
+	public Attrs(String type, String domain, String range){
+		this.type=type;
+		this.listType = "";
+		this.funDomain = domain;
+		this.funRange = range;
+		this.tupleTypes = new LinkedList();
+	}
+	
+	public Attrs(String type, String listType){
+		this.type=type;
+		this.listType = listType;
+		this.funDomain = "";
+		this.funRange = "";
+		this.tupleTypes = new LinkedList();
+	}
+	
+	public void setListType(String type){
+		this.listType = type;
+	}
+	
+	public String getListType(){
+		return listType;
+	}
+	
+	public LinkedList getTupleTypes(){
+		return tupleTypes;
+	}
+	
+	public String getDomain(){
+		return funDomain;
+	}
+	
+	public String getRange(){
+		return funRange;
+	}
+	
+	public void addTupletype(String type){
+		this.tupleTypes.add(type);
 	}
 
-	
-	public int getIntValue(){
-		return(this.intValue);
-	}
-	
-	public Boolean getBoolValue(){
-		return(this.boolValue);
-	}
-	
-	public float getFloatValue(){
-		return(this.floatValue);
-	}
-	
-	public float getRealValue(){
-	// sobrecargo este procedimiento porque SE
-	// que nos vamos a equivocar al llamar a FloatValue =P
-		return(this.floatValue);
-	}
-	
-	public String getValue(){
-		
-		if(this.type.compareTo("int")==0)
-			return ""+this.intValue;
-		else
-			if (this.type.compareTo("float")==0)
-				return ""+this.floatValue;
-			else
-				return ""+this.boolValue;
-		
-	}
-	
 	public String getType(){
 		return this.type;
 	}
-		
 }

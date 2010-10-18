@@ -15,21 +15,18 @@ BLANCOS = [ \t\r\n\f]+
 REAL = [0-9]+\.[0-9]+
 STRING = \".*\"
 ID = [a-z][a-z_0-9]*
+OPREL = <>|<=|<|>=|>
+OPADD = \+|-
 %%
 
 {PUNTO}		{ return new Symbol(sym.PUNTO, new Token(sym.PUNTO, yytext(), yyline+1));}
 ";"			{ return new Symbol(sym.PTOCOMA, new Token(sym.PTOCOMA, yytext(), yyline+1));}
 "="			{ return new Symbol(sym.IGUAL);}
 ","			{ return new Symbol(sym.COMA, new Token(sym.COMA, yytext(), yyline+1));}
-"<>"		{ return new Symbol(sym.DISTINTO, new Token(sym.DISTINTO, yytext(), yyline+1));}
-"<="		{ return new Symbol(sym.MENORIGUAL, new Token(sym.MENORIGUAL, yytext(), yyline+1));}
-"<"			{ return new Symbol(sym.MENOR, new Token(sym.MENOR, yytext(), yyline+1));}
-">="		{ return new Symbol(sym.MAYORIGUAL, new Token(sym.MAYORIGUAL, yytext(), yyline+1));}
-">"			{ return new Symbol(sym.MAYOR, new Token(sym.MAYOR, yytext(), yyline+1));}
+{OPREL}		{ return new Symbol(sym.OPREL, new Token(sym.OPREL, yytext(), yyline+1));}
 "::"		{ return new Symbol(sym.CONS, new Token(sym.CONS, yytext(), yyline+1));}
-"+"			{ return new Symbol(sym.SUMA, new Token(sym.SUMA, yytext(), yyline+1));}
-"-"			{ return new Symbol(sym.RESTA, new Token(sym.RESTA, yytext(), yyline+1));}
-"orelse/* "	{ return new Symbol(sym.ORELSE, new Token(sym.ORELSE, yytext(), yyline+1));}
+{OPADD}		{ return new Symbol(sym.OPADD, new Token(sym.OPADD, yytext(), yyline+1));}
+"orelse"	{ return new Symbol(sym.ORELSE, new Token(sym.ORELSE, yytext(), yyline+1));}
 "^"			{ return new Symbol(sym.CONCAT, new Token(sym.CONCAT, yytext(), yyline+1));}
 "*"			{ return new Symbol(sym.MUL, new Token(sym.MUL, yytext(), yyline+1));}
 "/"			{ return new Symbol(sym.DIVREAL, new Token(sym.DIVREAL, yytext(), yyline+1));}

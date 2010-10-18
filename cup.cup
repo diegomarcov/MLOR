@@ -1,7 +1,7 @@
 import java_cup.runtime.*;
 import java.io.*;
 import java.util.*;
-import MLOR.*;
+
 
 action code
 {:
@@ -23,10 +23,7 @@ parser code
 	}
 :}
 
-terminal Token PUNTO, PTOCOMA, IGUAL, COMA, DISTINTO, MENORIGUAL, MENOR, MAYORIGUAL, MAYOR, CONS, SUMA, RESTA, ORELSE, CONCAT, MUL, DIVREAL, DIVINT, MOD, ANDALSO, NOT, MINUS, PARABRE, PARCIERRA, CORABRE, CORCIERRA, NIL, FUN, VAL, ID;
-terminal Integer INT;
-terminal Real REAL;
-terminal String STRING;
+terminal Token PUNTO, PTOCOMA, IGUAL, COMA, OPREL, CONS, OPADD, ORELSE, CONCAT, MUL, DIVREAL, DIVINT, MOD, ANDALSO, NOT, MINUS, PARABRE, PARCIERRA, CORABRE, CORCIERRA, NIL, FUN, VAL, ID, INT, REAL, STRING;
 
 non terminal Programa, Lista_sentencias;
 
@@ -67,12 +64,11 @@ TuplePattern ::= PARABRE TuplePattern2 PARCIERRA;
 
 TuplePattern2 ::= TuplePattern2 COMA ID  | ID;
 
-Exp_Rel  	::= 	Exp_Rel MENOR Exp_cons | Exp_Rel MAYOR Exp_cons | Exp_Rel MENORIGUAL Exp_cons |	
-					Exp_Rel MAYORIGUAL Exp_cons | Exp_Rel DISTINTO Exp_cons | Exp_Rel IGUAL Exp_cons | Exp_cons;
+Exp_Rel  	::= Exp_Rel OPREL Exp_cons| Exp_Rel IGUAL Exp_cons | Exp_cons;
 				
 Exp_cons 	::=	Exp_cons CONS Exp_add | Exp_add;
 
-Exp_add  	::=	Exp_add SUMA Exp_mul | Exp_add RESTA Exp_mul | 
+Exp_add  	::=	Exp_add OPADD Exp_mul | 
 				Exp_add ORELSE Exp_mul | Exp_add CONCAT Exp_mul | Exp_mul;
 
 Exp_mul  	::=	Exp_mul MUL Exp_un | Exp_mul DIVREAL Exp_un | Exp_mul DIVINT Exp_un |
@@ -82,15 +78,15 @@ Exp_un   	::=	NOT Exp_fun | MINUS Exp_fun | Exp_fun;
 
 Exp_fun  	::= 	Exp_fun Exp_atom | Exp_atom;
 
-Exp_atom	::=	INT:i {: RESULT = new Attrs("int", i.getLexeme()) :}
+Exp_atom	::=	INT:i {: RESULT = new Attrs("int") ;:}
 				| 
-				REAL:r {: RESULT = new Attrs("float", r.getLexeme()) :} 
+				REAL:r {: RESULT = new Attrs("float") ;:} 
 				| 
-				STRING:s {: RESULT = new Attrs("String", s.getLexeme()) :}
+				STRING:s {: RESULT = new Attrs("string") ;:}
 				| 
-				ID:id {: RESULT = new Attrs("identifier", id.getLexeme()) /* en este paso, lo mejor puede ser agregar el ID a la tabla de simbolos! */ :}
+				ID:id 
 				| 
-				NIL 
+				NIL {: RESULT = new Attrs("list") ;:}
 				| 
 				PARABRE 
 				Exp_Rel 
