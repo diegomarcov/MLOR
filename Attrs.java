@@ -4,6 +4,7 @@ public class Attrs{
 	String type;
 	Attrs listType;
 	ArrayList<Attrs> tupleTypes;
+	int politipo=0;
 	
 	Attrs funDomain;
 	Attrs funRange;
@@ -40,6 +41,14 @@ public class Attrs{
 		this.tupleTypes = typeList;
 	}
 	
+	public void setPolytype(int p){
+		politipo=p;
+	}
+	
+	public int getPolytype(){
+		return politipo;
+	}
+	
 	public void setListType(Attrs listType){
 		this.listType = listType;
 	}
@@ -48,16 +57,32 @@ public class Attrs{
 		return listType;
 	}
 	
-	public ArrayList getTupleTypes(){
-		return tupleTypes;
+	public int getTupleLenght(){
+		return tupleTypes.size();
+	}
+	
+	public void setDomain(Attrs d){
+		funDomain = d;
 	}
 	
 	public Attrs getDomain(){
 		return funDomain;
 	}
 	
+	public void setRange(Attrs r){
+		funRange = r;
+	}
+	
 	public Attrs getRange(){
 		return funRange;
+	}
+	
+	public void setTupleTypes(ArrayList list){
+		tupleTypes = list;
+	}
+		
+	public ArrayList getTupleTypes(){
+		return tupleTypes;
 	}
 	
 	public void addTupleTypeBegin(Attrs type){
@@ -72,5 +97,8 @@ public class Attrs{
 		return this.type;
 	}
 	
+	public void setType(String t){
+		type = t;
+	}
 
 }

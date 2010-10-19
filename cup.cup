@@ -6,10 +6,40 @@ import java.util.*;
 action code
 {:
 	Hashtable st,localST;
+	int politipoActual=0;
+	
+	private void imprimirTipo(Attrs id){
+		System.out.println(id.getType());
+	}	
+	
+	private String obtenerTipo(String id) throws Exception{
+		Attrs t;
+		if (localST != null){
+			t = (Attrs) localST.get(id);
+			if(t != null){
+				return (t.getType());
+			}else{				
+				t = (Attrs) st.get(id);
+				if(t != null){
+					return (t.getType());
+				}else{
+					throw new Exception("Undeclared identifier!");
+				}
+			}
+		}else{
+			t = (Attrs) st.get(id);
+			if(t != null){
+				return (t.getType());
+			}else{
+				throw new Exception("Undeclared identifier!");
+			}		
+		}
+		
+	}
 	
 	private boolean putLocalID(String id){
 		if (localST.get(id)!=null){
-			localST.put(id,new Attrs("politipo"));
+			localST.put(id,crearPolitipo());
 			return true;
 		}
 		else{
@@ -17,30 +47,109 @@ action code
 		}
 	}
 	
+	private Attrs crearPolitipo(){
+		Attrs aux = new Attrs("politipo");
+		aux.setPolytype(politipoActual);
+		politipoActual++;
+		return aux;
+	}
+	
+	private void clonarTipos(Attrs type1,Attrs type2){
+		type1.setListType(type2.getListType());
+		type1.setType(type2.getType());
+		type1.setPolytype(type2.getPolytype());
+		type1.setTupleTypes(type2.getTupleTypes());
+		type1.setDomain(type2.getDomain());
+		type1.setRange(type2.getRange());
+	}
+	
 	private Attrs tipoMasEspecifico(Attrs type1, Attrs type2){
-		if (type1.getType().equals(type2.getType())){
+		String t1,t2;
+		ArrayList listT1,listT2,result;
+		Attrs tResult;
+		t1 = type1.getType();
+		t2 = type2.getType();
+		
+		if ((t1.equals("int") || t1.equals("real") || t1.equals("boolean") || t1.equals("string")) && (t2.equals("int") || t2.equals("real") || t2.equals("boolean") || t2.equals("string")) && t1.equals(t2)){
+		//si ambos son tipos simples o iguales, todo OK
 			return type1;
-		}else{
-			if (type1.getType() == "politipo" || type1.getType() == "politipo con igualdad"){
-				return type2;
-			}
-			else if (type2.getType() == "politipo" || type2.getType() == "politipo con igualdad")
-				return type1;
-			else if (type1.getType() == "politipo numerico" ){
-				if (type2.getType() == "int" || type2.getType() == "real")
-					return type2;
-				else 
-					return null;
-			}
-			else if (type2.getType() == "politipo numerico" ){
-				if (type1.getType() == "int" || type1.getType() == "real")
-					return type1;
-				else 
-					return null;
-			}
-			else
-				return null;
 		}
+		else{
+			if (t1.equals(t2)){ //los tipo de t1 y 2 son iguales, pero no son tipos basicos
+				if (t1.equals("tupla")){
+					//ambos son tuplas
+					if (type1.getTupleLenght()==type2.getTupleLenght()){
+					//ambos son tuplas de la misma longitud
+						listT1 = type1.getTupleTypes();
+						listT2 = type2.getTupleTypes();
+						result = new ArrayList();
+						for (int i=0;i<listT1.size();i++){
+							tResult = tipoMasEspecifico((Attrs) listT1.get(i),(Attrs) listT2.get(i));
+							if (tResult!=null)
+								result.add(tResult);
+							else
+								return null;
+						}
+						type2.setTupleTypes(result);
+						type1.setTupleTypes(result);
+						return type1;
+					}
+					//ambos son tuplas, pero las longitudes no coindicen
+					return null;
+				}
+				else if (t1.equals("list")){
+					//ambos son listas
+					tResult = tipoMasEspecifico(type1.getListType(),type2.getListType());
+					if (tResult!=null){
+						type1.setListType(tResult);
+						type2.setListType(tResult);
+						return type1;
+					}
+					else
+						return null;
+				}
+				//ambos son el mismo tipo de politipo
+				else if (t1.equals("politipo") || t1.equals("politipo con igualdad") || t1.equals("politipo numerico")){
+					//indicamos que, si uno es 'a y el otro es 'b, ahora ambos pasan a ser 'a
+					type2.setPolytype(type1.getPolytype());
+					return type1;
+				}
+				else
+					return null;
+			}else{ //los tipos de t1 y 2 son distintos
+				if (t1.equals("politipo") || t1.equals("politipo con igualdad")){
+					//si uno de los tipos es un politipo, lo clonamos al otro
+					clonarTipos(type1,type2);
+					return type2;
+				}
+				else if (t2.equals("politipo") || t2.equals("politipo con igualdad")){
+					//si uno de los tipos es un politipo, lo clonamos al otro
+					clonarTipos(type2,type1);
+					return type1;
+				}
+				else if (t1.equals("politipo numerico" )){
+					//si uno es un politipo numerico, y el otro es int o real, asignamos el politipo
+					if (t2.equals("int") || t2.equals("real")){
+						type1.setType(t2);
+						return type2;
+					}
+					else 
+						return null;
+				}
+				else if (t2.equals("politipo numerico" )){
+					//si uno es un politipo numerico, y el otro es int o real, asignamos el politipo
+					if (t1.equals("int") || t1.equals("real")){
+						type2.setType(t1);
+						return type1;
+					}
+					else 
+						return null;
+				}
+				else // si no es ningun politipo, y son distintos, se rompio
+					return null;
+			}
+		}
+		
 	}
 :}
 
@@ -76,12 +185,14 @@ Programa ::= 	{:
 				;
 
 Lista_sentencias ::= 	Lista_sentencias 
+						{: System.out.println("Leyendo otra sentencia"); :}
 						Sentencia 
 						PTOCOMA 
 						| 
-						{: System.out.println("Entrando a leer Sentencia"); :}
+						{: System.out.println("Entrando a leer la primer sentencia"); :}
 						Sentencia 
-						PTOCOMA	{: System.out.println("; found!"); :}
+						{: System.out.println("; found!"); :}
+						PTOCOMA	
 						;
 
 Sentencia ::= 	VAL {: System.out.println("VAL found!");:}
@@ -90,7 +201,11 @@ Sentencia ::= 	VAL {: System.out.println("VAL found!");:}
 				Exp_Rel:exp {: System.out.println("Rest of Exp_Rel found!"); 
 						st.put(id.getLexeme(),exp);:}
 				| 
-				Exp_Rel:exp {:st.put("it",exp);:}
+				Exp_Rel:exp
+				{: 	st.put("it",exp);
+					System.out.print("val it: ");
+					imprimirTipo(exp);
+				:}
 				| 
 				{: localST = new Hashtable(); :}
 				FUN 
@@ -116,15 +231,15 @@ TuplePattern2 ::= TuplePattern2 COMA ID:id {:putLocalID(id.getLexeme());:}
 					| 
 					ID:id {:putLocalID(id.getLexeme());:};
 
-Exp_Rel  	::= Exp_Rel OPREL Exp_cons| Exp_Rel IGUAL Exp_cons | Exp_cons;
+Exp_Rel  	::= Exp_Rel OPREL Exp_cons| Exp_Rel IGUAL Exp_cons | Exp_cons:e {: RESULT = e; :};
 				
-Exp_cons 	::=	Exp_add CONS Exp_cons | Exp_add;
+Exp_cons 	::=	Exp_add CONS Exp_cons | Exp_add:e {: RESULT = e; :};
 
 Exp_add  	::=	Exp_add OPADD Exp_mul | 
-				Exp_add ORELSE Exp_mul | Exp_add CONCAT Exp_mul | Exp_mul;
+				Exp_add ORELSE Exp_mul | Exp_add CONCAT Exp_mul | Exp_mul:e {: RESULT = e; :};
 
 Exp_mul  	::=	Exp_mul MUL Exp_un | Exp_mul DIVREAL Exp_un | Exp_mul DIVINT Exp_un |
-				Exp_mul MOD Exp_un | Exp_mul ANDALSO Exp_un | Exp_un;
+				Exp_mul MOD Exp_un | Exp_mul ANDALSO Exp_un | Exp_un:e {: RESULT = e; :};
 
 Exp_un   	::=	NOT Exp_fun:fun 
 				{: 	if (tipoMasEspecifico(fun, new Attrs("boolean"))!=null){
@@ -144,7 +259,7 @@ Exp_un   	::=	NOT Exp_fun:fun
 					}
 				:}
 				| 
-				Exp_fun;
+				Exp_fun:e {: RESULT = e; :};
 
 Exp_fun  	::= Exp_fun:f Exp_atom:atom
 				{: 	if (f.getType().equals("fun")){
@@ -161,13 +276,13 @@ Exp_fun  	::= Exp_fun:f Exp_atom:atom
 				| 
 				Exp_atom:atom {: RESULT = atom; :};
 
-Exp_atom	::=	INT:i {: RESULT = new Attrs("int") ;:}
+Exp_atom	::=	INT {: RESULT = new Attrs("int"); :}
 				| 
-				REAL:r {: RESULT = new Attrs("float") ;:} 
+				REAL {: RESULT = new Attrs("real") ;:} 
 				| 
-				STRING:s {: RESULT = new Attrs("string") ;:}
+				STRING {: RESULT = new Attrs("string") ;:}
 				| 
-				ID:id 
+				ID:id {: RESULT = new Attrs(obtenerTipo(id.getLexeme())); :}
 				| 
 				NIL {: RESULT = new Attrs("list") ;:}
 				| 
@@ -188,7 +303,7 @@ Tuple2 	::= Tuple2:t COMA Exp_Rel:e
 				RESULT = t;
 			:}
 			| 
-			Exp_Rel:e {: 	Attrs t = new Attrs("tuple", new ArrayList());
+			Exp_Rel:e {: 	Attrs t = new Attrs("tupla", new ArrayList());
 							t.addTupleTypeBegin(e);
 							RESULT = t;
 			:};
