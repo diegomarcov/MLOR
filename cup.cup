@@ -8,9 +8,18 @@ action code
 	Hashtable st,localST;
 	int politipoActual=0;
 	
-	private void imprimirTipo(Attrs id){
-		System.out.println(id.getType());
+	//lo cambie para que devuelva el string, porque va a ser mas facil cuando apliquemos recursivamente
+	private String obtenerStringTipo(Attrs tipo){
+		if (tipo.getType().equals("list")){
+			return obtenerStringTipo(tipo.getListType())+" list";
+		}
+		else
+			return tipo.getType();
 	}	
+	
+	private void imprimirTipo(Attrs tipo){
+		System.out.println(obtenerStringTipo(tipo));
+	}
 	
 	private String obtenerTipo(String id) throws Exception{
 		Attrs t;
@@ -71,7 +80,7 @@ action code
 		Attrs tResult;
 		t1 = type1.getType();
 		t2 = type2.getType();
-		
+		System.out.println(""+t1.equals("int")+t2.equals("int")+t1.equals(t2));
 		if ((t1.equals("int") || t1.equals("real") || t1.equals("boolean") || t1.equals("string")) && (t2.equals("int") || t2.equals("real") || t2.equals("boolean") || t2.equals("string")) && t1.equals(t2)){
 		//si ambos son tipos simples o iguales, todo OK
 			return type1;
@@ -313,8 +322,8 @@ Tuple2 	::= Tuple2:t COMA Exp_Rel:e
 List 		::= CORABRE List2:l CORCIERRA {:RESULT = l;:};
 
 List2 	::= List2:list COMA Exp_Rel:exp {:Attrs t = tipoMasEspecifico(list.getListType(),exp);
-										  if (t==null)
-											RESULT = t;
+										  if (t!=null)
+											RESULT = list;
 										  else
 											throw new Exception("The list has elements of different types.");
 										  :}
