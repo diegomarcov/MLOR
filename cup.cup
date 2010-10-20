@@ -63,6 +63,8 @@ action code
 		type1.setRange(type2.getRange());
 	}
 	
+	//devuelve el tipo más específico, y CAMBIA los valores de los tipos para que sean iguales. 
+	//de no haber compatibilidad, devuelve null
 	private Attrs tipoMasEspecifico(Attrs type1, Attrs type2){
 		String t1,t2;
 		ArrayList listT1,listT2,result;
@@ -308,6 +310,13 @@ Tuple2 	::= Tuple2:t COMA Exp_Rel:e
 							RESULT = t;
 			:};
 
-List 		::= CORABRE List2 CORCIERRA;
+List 		::= CORABRE List2: CORCIERRA {:RESULT = l;:};
 
-List2 	::= List2 COMA Exp_Rel | Exp_Rel;
+List2 	::= List2:list COMA Exp_Rel:exp {:Attrs t = tipoMasEspecifico(list.getListType(),exp)
+										  if (t==null)
+											RESULT = t;
+										  else
+											throw new Exception("The list has elements of different types.");
+										  :}
+			| 
+			Exp_Rel:exp {:RESULT = new Attrs("list",exp);:};
