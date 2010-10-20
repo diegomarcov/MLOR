@@ -310,9 +310,9 @@ Tuple2 	::= Tuple2:t COMA Exp_Rel:e
 							RESULT = t;
 			:};
 
-List 		::= CORABRE List2: CORCIERRA {:RESULT = l;:};
+List 		::= CORABRE List2:l CORCIERRA {:RESULT = l;:};
 
-List2 	::= List2:list COMA Exp_Rel:exp {:Attrs t = tipoMasEspecifico(list.getListType(),exp)
+List2 	::= List2:list COMA Exp_Rel:exp {:Attrs t = tipoMasEspecifico(list.getListType(),exp);
 										  if (t==null)
 											RESULT = t;
 										  else
