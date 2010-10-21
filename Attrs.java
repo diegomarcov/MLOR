@@ -5,11 +5,13 @@ public class Attrs{
 	Attrs listType;
 	ArrayList<Attrs> tupleTypes;
 	int politipo=0;
+	ArrayList<String> idList;
 	
 	Attrs funDomain;
 	Attrs funRange;
 	
 	public Attrs(String type){
+		idList = new ArrayList<String>();
 		this.type=type;
 		this.listType = null;
 		this.funDomain = null;
@@ -17,7 +19,8 @@ public class Attrs{
 		this.tupleTypes = null;
 	}
 	
-	public Attrs(String type, Attrs domain, Attrs range){
+	public Attrs(String type, Attrs domain, Attrs range){ //funcion
+		idList = new ArrayList<String>();
 		this.type=type;
 		this.listType = null;
 		this.funDomain = domain;
@@ -25,7 +28,8 @@ public class Attrs{
 		this.tupleTypes = null;
 	}
 	
-	public Attrs(String type, Attrs listType){
+	public Attrs(String type, Attrs listType){ //lista
+		idList = new ArrayList<String>();
 		this.type=type;
 		this.listType = listType;
 		this.funDomain = null;
@@ -33,12 +37,24 @@ public class Attrs{
 		this.tupleTypes = null;
 	}
 	
-	public Attrs(String type, ArrayList typeList){
+	public Attrs(String type, ArrayList typeList){ //tupla
+		idList = new ArrayList<String>();
 		this.type=type;
 		this.listType = null;
 		this.funDomain = null;
 		this.funRange = null;
 		this.tupleTypes = typeList;
+	}
+	
+	public void agregarID(String s){
+		idList.put(s);
+	}
+
+	public void deleteInvolvedIDs(){
+		idList =new ArrayList<String>();
+	}
+	public ArrayList<String> getInvolvedIDs(){
+		return idList;
 	}
 	
 	public void setPolytype(int p){

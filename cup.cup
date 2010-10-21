@@ -8,17 +8,45 @@ action code
 	Hashtable st,localST;
 	int politipoActual=0;
 	
+	
 	//lo cambie para que devuelva el string, porque va a ser mas facil cuando apliquemos recursivamente
 	private String obtenerStringTipo(Attrs tipo){
+	ArrayList<Attrs> list;
+	String aux;
+		System.out.println("entre a obtenerStringTipo");
 		if (tipo.getType().equals("list")){
+			System.out.println("estoy en lista");
 			return obtenerStringTipo(tipo.getListType())+" list";
 		}
-		else
+		else if (tipo.getType().equals("tuple")){
+			System.out.println("estoy en tupla");
+			list = tipo.getTupleTypes();
+			aux = "(";
+			for (int i=0;i<list.size();i++){
+				aux+=obtenerStringTipo(list.get(i));
+				if (i!=list.size()-1){
+					aux+=" * ";
+				}
+			}			
+			aux+=")";
+			return aux;
+		}
+		else if (tipo.getType().equals("fun")){
+			System.out.println("estoy en fun");
+			return (obtenerStringTipo(tipo.getDomain()) + " -> " + obtenerStringTipo(tipo.getRange()));
+		}
+		else{
+			System.out.println("estoy en tipo simple");
 			return tipo.getType();
+		}
 	}	
 	
+	private boolean esTipoSimple(Attrs t1){
+		return (t1.equals("int") || t1.equals("real") || t1.equals("boolean") || t1.equals("string"));
+	}
+	
 	private void imprimirTipo(Attrs tipo){
-		System.out.println(obtenerStringTipo(tipo));
+		System.out.print(obtenerStringTipo(tipo));
 	}
 	
 	private String obtenerTipo(String id) throws Exception{
@@ -47,8 +75,11 @@ action code
 	}
 	
 	private boolean putLocalID(String id){
-		if (localST.get(id)!=null){
-			localST.put(id,crearPolitipo());
+	
+		if (localST.get(id)==null){
+			Attrs aux =crearPolitipo();
+			localST.put(id,aux);
+			System.out.println("insertando " + id + " a la tabla local con " + aux.getType());
 			return true;
 		}
 		else{
@@ -81,13 +112,13 @@ action code
 		t1 = type1.getType();
 		t2 = type2.getType();
 		System.out.println(""+t1.equals("int")+t2.equals("int")+t1.equals(t2));
-		if ((t1.equals("int") || t1.equals("real") || t1.equals("boolean") || t1.equals("string")) && (t2.equals("int") || t2.equals("real") || t2.equals("boolean") || t2.equals("string")) && t1.equals(t2)){
+		if ((esTipoSimple(t1)) && (esTipoSimple(t2)) && t1.equals(t2)){
 		//si ambos son tipos simples o iguales, todo OK
 			return type1;
 		}
 		else{
 			if (t1.equals(t2)){ //los tipo de t1 y 2 son iguales, pero no son tipos basicos
-				if (t1.equals("tupla")){
+				if (t1.equals("tuple")){
 					//ambos son tuplas
 					if (type1.getTupleLenght()==type2.getTupleLenght()){
 					//ambos son tuplas de la misma longitud
@@ -122,7 +153,7 @@ action code
 				//ambos son el mismo tipo de politipo
 				else if (t1.equals("politipo") || t1.equals("politipo con igualdad") || t1.equals("politipo numerico")){
 					//indicamos que, si uno es 'a y el otro es 'b, ahora ambos pasan a ser 'a
-					type2.setPolytype(type1.getPolytype());
+					type2.setPolytype(type1.getPolytype()); //aca tenemos que mergear las listas, hacer que todos los ids de las listas apunten al mismo tipo,  y devolver uno de los dos
 					return type1;
 				}
 				else
@@ -218,15 +249,21 @@ Sentencia ::= 	VAL {: System.out.println("VAL found!");:}
 					imprimirTipo(exp);
 				:}
 				| 
-				{: localST = new Hashtable(); :}
 				FUN 
+				{: localST = new Hashtable(); :}
 				MatchingFunc
 				{: localST = null; :}
 				;
 
-MatchingFunc ::= ID:f ID:param {:putLocalID(param.getLexeme());:}
-				CurryingList:list  {:st.put(f.getLexeme(),new Attrs("fun",(Attrs)localST.get(param.getLexeme()), list)); :}
-				| 
+MatchingFunc ::= ID:f ID:param {:System.out.println(""+putLocalID(param.getLexeme()));:} //pone el parametro con un politipo
+				CurryingList:list  
+					{:Attrs aux = new Attrs("fun",(Attrs)localST.get(param.getLexeme()), list);
+					  st.put(f.getLexeme(),aux); 
+					  System.out.print(f.getLexeme()+": ");
+					  imprimirTipo(aux);
+					  System.out.println(" = fn;");
+					:}
+				|  
 				ID:f
 				TuplePattern:tuple
 				IGUAL
@@ -293,12 +330,22 @@ Exp_atom	::=	INT {: RESULT = new Attrs("int"); :}
 				| 
 				STRING {: RESULT = new Attrs("string") ;:}
 				| 
-				ID:id {: RESULT = new Attrs(obtenerTipo(id.getLexeme())); :}
+				ID:id {:Attrs aux = new Attrs(obtenerTipo(id.getLexeme()));
+						if (aux!=null){
+							if (!esTipoSimple(aux)){
+								aux.agregarID(id.getLexeme());
+							}
+							RESULT = aux;
+						}
+						else
+							throw new Exception("Undeclared identifier (" + id.getLexeme() +")");
+					  :}
 				| 
 				NIL {: RESULT = new Attrs("list") ;:}
 				| 
 				PARABRE 
-				Exp_Rel:e {: RESULT = e; :}
+				Exp_Rel:e {: e.deleteInvolvedIDs(); // se supone que los tipos de los id estan resueltos
+							 RESULT = e; :}
 				PARCIERRA 
 				| 
 				Tuple:t {:RESULT = t; :} 
@@ -314,7 +361,7 @@ Tuple2 	::= Tuple2:t COMA Exp_Rel:e
 				RESULT = t;
 			:}
 			| 
-			Exp_Rel:e {: 	Attrs t = new Attrs("tupla", new ArrayList());
+			Exp_Rel:e {: 	Attrs t = new Attrs("tuple", new ArrayList());
 							t.addTupleTypeBegin(e);
 							RESULT = t;
 			:};
