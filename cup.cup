@@ -6,10 +6,70 @@ import java.util.*;
 action code
 {:
 	Hashtable st,localST;
+	int politipoActual=0;
+	
+	
+	//lo cambie para que devuelva el string, porque va a ser mas facil cuando apliquemos recursivamente
+	private String obtenerStringTipo(Attrs tipo){
+	ArrayList<Attrs> list;
+	String aux;
+		System.out.println("entre a obtenerStringTipo");
+		if (tipo.getType().equals("list")){
+			System.out.println("estoy en lista");
+			return obtenerStringTipo(tipo.getListType())+" list";
+		}
+		else if (tipo.getType().equals("tuple")){
+			System.out.println("estoy en tupla");
+			list = tipo.getTupleTypes();
+			aux = "(";
+			for (int i=0;i<list.size();i++){
+				aux+=obtenerStringTipo(list.get(i));
+				if (i!=list.size()-1){
+					aux+=" * ";
+				}
+			}			
+			aux+=")";
+			return aux;
+		}
+		else if (tipo.getType().equals("fun")){
+			System.out.println("estoy en fun");
+			return (obtenerStringTipo(tipo.getDomain()) + " -> " + obtenerStringTipo(tipo.getRange()));
+		}
+		else{
+			System.out.println("estoy en tipo simple");
+			return tipo.getType();
+		}
+	}	
+	
+	private boolean esTipoSimple(Attrs type1){
+		String t1 = type1.getType();
+		return (t1.equals("int") || t1.equals("real") || t1.equals("boolean") || t1.equals("string"));
+	}
+	
+	private void imprimirTipo(Attrs tipo){
+		System.out.print(obtenerStringTipo(tipo));
+	}
+	
+	private Attrs obtenerTipo(String id) throws Exception{
+		Attrs t;		
+		if (localST != null){
+			t = (Attrs) localST.get(id);
+			if(t != null)
+				return (t);
+		}
+		t = (Attrs) st.get(id);
+		if(t != null){
+			return t;
+		}else
+			throw new Exception("Undeclared identifier!");
+	}
 	
 	private boolean putLocalID(String id){
-		if (localST.get(id)!=null){
-			localST.put(id,new Attrs("politipo"));
+	
+		if (localST.get(id)==null){
+			Attrs aux =crearPolitipo("politipo");
+			localST.put(id,aux);
+			System.out.println("insertando " + id + " a la tabla local con " + aux.getType());
 			return true;
 		}
 		else{
@@ -17,30 +77,114 @@ action code
 		}
 	}
 	
-	private Attrs tipoMasEspecifico(Attrs type1, Attrs type2){
-		if (type1.getType().equals(type2.getType())){
-			return type1;
-		}else{
-			if (type1.getType() == "politipo" || type1.getType() == "politipo con igualdad"){
-				return type2;
-			}
-			else if (type2.getType() == "politipo" || type2.getType() == "politipo con igualdad")
-				return type1;
-			else if (type1.getType() == "politipo numerico" ){
-				if (type2.getType() == "int" || type2.getType() == "real")
-					return type2;
-				else 
-					return null;
-			}
-			else if (type2.getType() == "politipo numerico" ){
-				if (type1.getType() == "int" || type1.getType() == "real")
-					return type1;
-				else 
-					return null;
-			}
-			else
-				return null;
+	private Attrs crearPolitipo(String poli){
+		Attrs aux = new Attrs(poli);
+		aux.setPolytype(politipoActual);
+		politipoActual++;
+		return aux;
+	}
+	
+	private void clonarTipos(Attrs type1,Attrs type2){ //type2 es el mas especifico
+		Object[] aux;
+		System.out.println("entra a clonar");
+		type2.mergeInvolvedIDs(type1.getInvolvedIDs());
+		aux = type2.getInvolvedIDs().toArray();
+		for (int i=0;i<aux.length;i++){
+			localST.put((String)aux[i],type2);
+			System.out.println(aux[i]	);
 		}
+	}
+	
+	//devuelve el tipo más específico, y CAMBIA los valores de los tipos para que sean iguales. 
+	//de no haber compatibilidad, devuelve null
+	private Attrs tipoMasEspecifico(Attrs type1, Attrs type2){
+		String t1,t2;
+		ArrayList listT1,listT2,result;
+		Attrs tResult;
+		t1 = type1.getType();
+		t2 = type2.getType();
+		System.out.println("entra veron con " + t1 + t2);
+		if ((esTipoSimple(type1)) && (esTipoSimple(type2)) && t1.equals(t2)){
+		//si ambos son tipos simples o iguales, todo OK
+			System.out.println("entro a tipo simple ");
+			return type1;
+		}
+		else{
+			if (t1.equals(t2)){ //los tipo de t1 y 2 son iguales, pero no son tipos basicos
+				if (t1.equals("tuple")){
+					//ambos son tuplas
+					if (type1.getTupleLenght()==type2.getTupleLenght()){
+					//ambos son tuplas de la misma longitud
+						listT1 = type1.getTupleTypes();
+						listT2 = type2.getTupleTypes();
+						result = new ArrayList();
+						for (int i=0;i<listT1.size();i++){
+							tResult = tipoMasEspecifico((Attrs) listT1.get(i),(Attrs) listT2.get(i));
+							if (tResult!=null)
+								result.add(tResult);
+							else
+								return null;
+						}
+						type2.setTupleTypes(result);
+						type1.setTupleTypes(result);
+						return type1;
+					}
+					//ambos son tuplas, pero las longitudes no coindicen
+					return null;
+				}
+				else if (t1.equals("list")){
+					//ambos son listas
+					tResult = tipoMasEspecifico(type1.getListType(),type2.getListType());
+					if (tResult!=null){
+						type1.setListType(tResult);
+						type2.setListType(tResult);
+						return type1;
+					}
+					else
+						return null;
+				}
+				//ambos son el mismo tipo de politipo
+				else if (t1.equals("politipo") || t1.equals("politipo con igualdad") || t1.equals("politipo numerico")){
+					clonarTipos(type2,type1);
+					return type1;
+				}
+				else //falta fun HACERRRRRRRRRRR
+					return null;
+			}else{ //los tipos de t1 y 2 son distintos
+				if (t1.equals("politipo") || t1.equals("politipo con igualdad")){
+					//si uno de los tipos es un politipo, lo clonamos al otro
+					clonarTipos(type1,type2); //puede ser necesario borrar las listas
+					return type2;
+				}
+				else if (t2.equals("politipo") || t2.equals("politipo con igualdad")){
+					//si uno de los tipos es un politipo, lo clonamos al otro
+					clonarTipos(type2,type1); //puede ser necesario borrar las listas
+					return type1;
+				}
+				else if (t1.equals("politipo numerico" )){
+					//si uno es un politipo numerico, y el otro es int o real, asignamos el politipo
+					if (t2.equals("int") || t2.equals("real")){
+						clonarTipos(type1,type2); //puede ser necesario borrar las listas
+						
+						return type2;
+					}
+					else 
+						return null;
+				}
+				else if (t2.equals("politipo numerico" )){
+					//si uno es un politipo numerico, y el otro es int o real, asignamos el politipo
+					if (t1.equals("int") || t1.equals("real")){
+						clonarTipos(type2,type1);
+						return type1; //puede ser necesario borrar las listas
+					}
+					else 
+						return null;
+				}
+				else // si no es ningun politipo, y son distintos, se rompio
+					return null;
+			}
+		}
+		
 	}
 :}
 
@@ -76,12 +220,14 @@ Programa ::= 	{:
 				;
 
 Lista_sentencias ::= 	Lista_sentencias 
+						{: System.out.println("Leyendo otra sentencia"); :}
 						Sentencia 
 						PTOCOMA 
 						| 
-						{: System.out.println("Entrando a leer Sentencia"); :}
+						{: System.out.println("Entrando a leer la primer sentencia"); :}
 						Sentencia 
-						PTOCOMA	{: System.out.println("; found!"); :}
+						{: System.out.println("; found!"); :}
+						PTOCOMA	
 						;
 
 Sentencia ::= 	VAL {: System.out.println("VAL found!");:}
@@ -90,17 +236,27 @@ Sentencia ::= 	VAL {: System.out.println("VAL found!");:}
 				Exp_Rel:exp {: System.out.println("Rest of Exp_Rel found!"); 
 						st.put(id.getLexeme(),exp);:}
 				| 
-				Exp_Rel:exp {:st.put("it",exp);:}
+				Exp_Rel:exp
+				{: 	st.put("it",exp);
+					System.out.print("val it: ");
+					imprimirTipo(exp);
+				:}
 				| 
-				{: localST = new Hashtable(); :}
 				FUN 
+				{: localST = new Hashtable(); :}
 				MatchingFunc
 				{: localST = null; :}
 				;
 
-MatchingFunc ::= ID:f ID:param {:putLocalID(param.getLexeme());:}
-				CurryingList:list  {:st.put(f.getLexeme(),new Attrs("fun",(Attrs)localST.get(param.getLexeme()), list)); :}
-				| 
+MatchingFunc ::= ID:f ID:param {:putLocalID(param.getLexeme());:} //pone el parametro con un politipo
+				CurryingList:list  
+					{:Attrs aux = new Attrs("fun",(Attrs)localST.get(param.getLexeme()), list);
+					  st.put(f.getLexeme(),aux); 
+					  System.out.print(f.getLexeme()+": ");
+					  imprimirTipo(aux);
+					  System.out.println(" = fn;");
+					:}
+				|  
 				ID:f
 				TuplePattern:tuple
 				IGUAL
@@ -116,21 +272,36 @@ TuplePattern2 ::= TuplePattern2 COMA ID:id {:putLocalID(id.getLexeme());:}
 					| 
 					ID:id {:putLocalID(id.getLexeme());:};
 
-Exp_Rel  	::= Exp_Rel OPREL Exp_cons| Exp_Rel IGUAL Exp_cons | Exp_cons;
+Exp_Rel  	::= Exp_Rel OPREL Exp_cons| Exp_Rel IGUAL Exp_cons | Exp_cons:e {: RESULT = e; :};
 				
-Exp_cons 	::=	Exp_add CONS Exp_cons | Exp_add;
+Exp_cons 	::=	Exp_add CONS Exp_cons | Exp_add:e {: RESULT = e; :};
 
-Exp_add  	::=	Exp_add OPADD Exp_mul | 
-				Exp_add ORELSE Exp_mul | Exp_add CONCAT Exp_mul | Exp_mul;
+Exp_add  	::=	Exp_add:e1 OPADD Exp_mul:e2
+				{:
+					Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						t = tipoMasEspecifico(t,crearPolitipo("politipo numerico"));
+						if (t!=null){
+							RESULT = t;
+						}else{
+							throw new Exception("Integer or real expected.");
+						}
+					}else{
+						throw new Exception("Integer or real expected.");
+					}
+				:}
+				| 
+				Exp_add ORELSE Exp_mul | Exp_add CONCAT Exp_mul | Exp_mul:e {: RESULT = e; :};
 
 Exp_mul  	::=	Exp_mul MUL Exp_un | Exp_mul DIVREAL Exp_un | Exp_mul DIVINT Exp_un |
-				Exp_mul MOD Exp_un | Exp_mul ANDALSO Exp_un | Exp_un;
+				Exp_mul MOD Exp_un | Exp_mul ANDALSO Exp_un | Exp_un:e {: RESULT = e; :};
 
 Exp_un   	::=	NOT Exp_fun:fun 
-				{: 	if (tipoMasEspecifico(fun, new Attrs("boolean"))!=null){
-						RESULT = fun;
+				{: 	Attrs t = tipoMasEspecifico(fun, new Attrs("boolean"));
+					if (t!=null){
+						RESULT = t;
 					}else{
-						throw new Exception("Not a valid function!");
+						throw new Exception("Boolean expected.");
 					}
 				:}
 				| 
@@ -140,11 +311,11 @@ Exp_un   	::=	NOT Exp_fun:fun
 					if (t != null){
 						RESULT = t;
 					}else{
-						throw new Exception("Not a valid function!");
+						throw new Exception("Integer or real expected");
 					}
 				:}
 				| 
-				Exp_fun;
+				Exp_fun:e {: RESULT = e; :};
 
 Exp_fun  	::= Exp_fun:f Exp_atom:atom
 				{: 	if (f.getType().equals("fun")){
@@ -161,18 +332,28 @@ Exp_fun  	::= Exp_fun:f Exp_atom:atom
 				| 
 				Exp_atom:atom {: RESULT = atom; :};
 
-Exp_atom	::=	INT:i {: RESULT = new Attrs("int") ;:}
+Exp_atom	::=	INT {: RESULT = new Attrs("int"); :}
 				| 
-				REAL:r {: RESULT = new Attrs("float") ;:} 
+				REAL {: RESULT = new Attrs("real") ;:} 
 				| 
-				STRING:s {: RESULT = new Attrs("string") ;:}
+				STRING {: RESULT = new Attrs("string") ;:}
 				| 
-				ID:id 
+				ID:id {:Attrs aux = obtenerTipo(id.getLexeme());
+						if (aux!=null){
+							if (!esTipoSimple(aux)){ //agrego a la lista de ids involucrados cualquier cosa que no tenga su tipo definido
+								aux.agregarID(id.getLexeme());
+							}
+							RESULT = aux;
+						}
+						else
+							throw new Exception("Undeclared identifier (" + id.getLexeme() +")");
+					  :}
 				| 
 				NIL {: RESULT = new Attrs("list") ;:}
 				| 
 				PARABRE 
-				Exp_Rel:e {: RESULT = e; :}
+				Exp_Rel:e {:// e.deleteInvolvedIDs(); // se supone que los tipos de los id estan resueltos
+							 RESULT = e; :}
 				PARCIERRA 
 				| 
 				Tuple:t {:RESULT = t; :} 
@@ -193,6 +374,13 @@ Tuple2 	::= Tuple2:t COMA Exp_Rel:e
 							RESULT = t;
 			:};
 
-List 		::= CORABRE List2 CORCIERRA;
+List 		::= CORABRE List2:l CORCIERRA {:RESULT = l;:};
 
-List2 	::= List2 COMA Exp_Rel | Exp_Rel;
+List2 	::= List2:list COMA Exp_Rel:exp {:Attrs t = tipoMasEspecifico(list.getListType(),exp);
+										  if (t!=null)
+											RESULT = list;
+										  else
+											throw new Exception("The list has elements of different types.");
+										  :}
+			| 
+			Exp_Rel:exp {:RESULT = new Attrs("list",exp);:};

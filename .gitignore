@@ -1,2 +1,5 @@
 /*.class
 *~
+Yylex.java
+parser.java
+sym.java
