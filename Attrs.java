@@ -5,13 +5,13 @@ public class Attrs{
 	Attrs listType;
 	ArrayList<Attrs> tupleTypes;
 	int politipo=0;
-	ArrayList<String> idList;
+	HashSet<String> idList;
 	
 	Attrs funDomain;
 	Attrs funRange;
 	
 	public Attrs(String type){
-		idList = new ArrayList<String>();
+		idList = new HashSet<String>();
 		this.type=type;
 		this.listType = null;
 		this.funDomain = null;
@@ -20,7 +20,7 @@ public class Attrs{
 	}
 	
 	public Attrs(String type, Attrs domain, Attrs range){ //funcion
-		idList = new ArrayList<String>();
+		idList = new HashSet<String>();
 		this.type=type;
 		this.listType = null;
 		this.funDomain = domain;
@@ -29,7 +29,7 @@ public class Attrs{
 	}
 	
 	public Attrs(String type, Attrs listType){ //lista
-		idList = new ArrayList<String>();
+		idList = new HashSet<String>();
 		this.type=type;
 		this.listType = listType;
 		this.funDomain = null;
@@ -38,7 +38,7 @@ public class Attrs{
 	}
 	
 	public Attrs(String type, ArrayList typeList){ //tupla
-		idList = new ArrayList<String>();
+		idList = new HashSet<String>();
 		this.type=type;
 		this.listType = null;
 		this.funDomain = null;
@@ -47,14 +47,18 @@ public class Attrs{
 	}
 	
 	public void agregarID(String s){
-		idList.put(s);
+		idList.add(s);
 	}
 
 	public void deleteInvolvedIDs(){
-		idList =new ArrayList<String>();
+		idList = new HashSet<String>();
 	}
-	public ArrayList<String> getInvolvedIDs(){
+	public HashSet<String> getInvolvedIDs(){
 		return idList;
+	}
+	
+	public void mergeInvolvedIDs(HashSet<String> s){
+		idList.addAll(s);
 	}
 	
 	public void setPolytype(int p){
@@ -116,5 +120,4 @@ public class Attrs{
 	public void setType(String t){
 		type = t;
 	}
-
 }
