@@ -97,11 +97,11 @@ public class Attrs{
 		return funRange;
 	}
 	
-	public void setTupleTypes(ArrayList list){
+	public void setTupleTypes(ArrayList<Attrs> list){
 		tupleTypes = list;
 	}
 		
-	public ArrayList getTupleTypes(){
+	public ArrayList<Attrs> getTupleTypes(){
 		return tupleTypes;
 	}
 	

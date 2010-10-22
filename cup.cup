@@ -184,7 +184,23 @@ action code
 					return null;
 			}
 		}
+	}
+	
+	private void corregirTupla(Attrs tupla){ //corrige las referencias de la tupla para que apunten a los lugares nuevos, en el caso que alguna variable haya cambiado de tipo
+		ArrayList<Attrs> auxList = new ArrayList<Attrs>();
+		ArrayList<Attrs> oldList = tupla.getTupleTypes();
+		Object[] ids;
 		
+		for (int i = 0;i< tupla.getTupleLenght();i++){
+
+			ids = oldList.get(i).getInvolvedIDs().toArray();
+			
+			if (ids.length>0)
+				auxList.add((Attrs)localST.get((String)ids[0]));
+			else
+				auxList.add(oldList.get(i));
+		}
+		tupla.setTupleTypes(auxList);
 	}
 :}
 
@@ -360,8 +376,11 @@ Exp_atom	::=	INT {: RESULT = new Attrs("int"); :}
 				| 
 				List:l {:RESULT = l; :};
 
-Tuple 	::= PARABRE Exp_Rel:e COMA Tuple2:t2 PARCIERRA {:t2.addTupleTypeBegin(e);
-														RESULT = t2; :}; /////////////////////// hay que hacer un ultimo recorrido buscando id relacionados y cambiar los tipos de la tupla
+Tuple 	::= PARABRE Exp_Rel:e COMA Tuple2:t2 PARCIERRA {:
+														t2.addTupleTypeBegin(e);
+														corregirTupla(t2);
+														RESULT = t2; 
+													   :}; /////////////////////// hay que hacer un ultimo recorrido buscando id relacionados y cambiar los tipos de la tupla
 
 Tuple2 	::= Tuple2:t COMA Exp_Rel:e 
 			{:
