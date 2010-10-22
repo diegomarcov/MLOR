@@ -91,7 +91,7 @@ action code
 		aux = type2.getInvolvedIDs().toArray();
 		for (int i=0;i<aux.length;i++){
 			localST.put((String)aux[i],type2);
-			System.out.println(aux[i]	);
+			System.out.println("variable cambiada: "+ aux[i] + " con " + type2.getType());
 		}
 	}
 	
@@ -129,11 +129,11 @@ action code
 						type1.setTupleTypes(result);
 						return type1;
 					}
-					//ambos son tuplas, pero las longitudes no coindicen
+					//ambas son tuplas, pero las longitudes no coindicen
 					return null;
 				}
 				else if (t1.equals("list")){
-					//ambos son listas
+					//ambas son listas
 					tResult = tipoMasEspecifico(type1.getListType(),type2.getListType());
 					if (tResult!=null){
 						type1.setListType(tResult);
@@ -361,7 +361,7 @@ Exp_atom	::=	INT {: RESULT = new Attrs("int"); :}
 				List:l {:RESULT = l; :};
 
 Tuple 	::= PARABRE Exp_Rel:e COMA Tuple2:t2 PARCIERRA {:t2.addTupleTypeBegin(e);
-														RESULT = t2; :};
+														RESULT = t2; :}; /////////////////////// hay que hacer un ultimo recorrido buscando id relacionados y cambiar los tipos de la tupla
 
 Tuple2 	::= Tuple2:t COMA Exp_Rel:e 
 			{:
@@ -378,7 +378,8 @@ List 		::= CORABRE List2:l CORCIERRA {:RESULT = l;:};
 
 List2 	::= List2:list COMA Exp_Rel:exp {:Attrs t = tipoMasEspecifico(list.getListType(),exp);
 										  if (t!=null)
-											RESULT = list;
+											
+											RESULT = tipoMasEspecifico(list,new Attrs("list",t));
 										  else
 											throw new Exception("The list has elements of different types.");
 										  :}
