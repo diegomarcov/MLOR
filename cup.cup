@@ -13,13 +13,13 @@ action code
 	private String obtenerStringTipo(Attrs tipo){
 	ArrayList<Attrs> list;
 	String aux;
-		System.out.println("entre a obtenerStringTipo");
+		// System.out.println("entre a obtenerStringTipo");
 		if (tipo.getType().equals("list")){
-			System.out.println("estoy en lista");
+			// System.out.println("estoy en lista");
 			return obtenerStringTipo(tipo.getListType())+" list";
 		}
 		else if (tipo.getType().equals("tuple")){
-			System.out.println("estoy en tupla");
+			// System.out.println("estoy en tupla");
 			list = tipo.getTupleTypes();
 			aux = "(";
 			for (int i=0;i<list.size();i++){
@@ -27,16 +27,20 @@ action code
 				if (i!=list.size()-1){
 					aux+=" * ";
 				}
-			}			
+			}
 			aux+=")";
 			return aux;
 		}
 		else if (tipo.getType().equals("fun")){
-			System.out.println("estoy en fun");
-			return (obtenerStringTipo(tipo.getDomain()) + " -> " + obtenerStringTipo(tipo.getRange()));
+			// System.out.println("estoy en fun");
+			if (tipo.getDomain().getType().equals("fun"))
+				aux = "(" + obtenerStringTipo(tipo.getDomain()) + ")";
+			else
+				aux = obtenerStringTipo(tipo.getDomain());				
+			return aux + " -> " + obtenerStringTipo(tipo.getRange());
 		}
 		else{
-			System.out.println("estoy en tipo simple");
+			// System.out.println("estoy en tipo simple");
 			return tipo.getType();
 		}
 	}	
@@ -103,7 +107,7 @@ action code
 		Attrs tResult;
 		t1 = type1.getType();
 		t2 = type2.getType();
-		System.out.println("entra veron con " + t1 + t2);
+		System.out.println("entra veron con " + t1 +" y "+ t2);
 		if ((esTipoSimple(type1)) && (esTipoSimple(type2)) && t1.equals(t2)){
 		//si ambos son tipos simples o iguales, todo OK
 			System.out.println("entro a tipo simple ");
@@ -148,7 +152,13 @@ action code
 					clonarTipos(type2,type1);
 					return type1;
 				}
-				else //falta fun HACERRRRRRRRRRR
+				else if (t1.equals("fun")){
+					type1.setDomain(tipoMasEspecifico(type1.getDomain(),type2.getDomain()));
+					type1.setRange(tipoMasEspecifico(type1.getRange(),type2.getRange()));
+					clonarTipos(type2,type1);
+					return type1;
+				}
+				else
 					return null;
 			}else{ //los tipos de t1 y 2 son distintos
 				if (t1.equals("politipo") || t1.equals("politipo con igualdad")){
@@ -334,14 +344,17 @@ Exp_un   	::=	NOT Exp_fun:fun
 				Exp_fun:e {: RESULT = e; :};
 
 Exp_fun  	::= Exp_fun:f Exp_atom:atom
-				{: 	if (f.getType().equals("fun")){
-						if (tipoMasEspecifico(f.getDomain(), atom)!=null){
+				{:
+					Attrs aux = tipoMasEspecifico(f,new Attrs("fun",atom,crearPolitipo("politipo")));
+					if (aux!=null){
+						// if (tipoMasEspecifico(f.getDomain(), atom)!=null){
 						// hay que checkear para cambiar el tipo de atom _O_ las variables de f!
-							RESULT = f.getRange();
-						}else{
-							throw new Exception("Invalid parameter type!");
-						}
-					}else{
+							// RESULT = f.getRange();
+
+							// throw new Exception("Invalid parameter type!");
+							RESULT = aux.getRange();
+					}
+					else{
 						throw new Exception("Not a valid function!");
 					}
 				:}
@@ -395,12 +408,12 @@ Tuple2 	::= Tuple2:t COMA Exp_Rel:e
 
 List 		::= CORABRE List2:l CORCIERRA {:RESULT = l;:};
 
-List2 	::= List2:list COMA Exp_Rel:exp {:Attrs t = tipoMasEspecifico(list.getListType(),exp);
-										  if (t!=null)
-											
-											RESULT = tipoMasEspecifico(list,new Attrs("list",t));
-										  else
-											throw new Exception("The list has elements of different types.");
-										  :}
+List2 	::= List2:list COMA Exp_Rel:exp {:
+											Attrs t = tipoMasEspecifico(list.getListType(),exp);
+											if (t!=null)											
+												RESULT = tipoMasEspecifico(list,new Attrs("list",t));
+											else
+												throw new Exception("The list has elements of different types.");
+										:}
 			| 
 			Exp_Rel:exp {:RESULT = new Attrs("list",exp);:};
