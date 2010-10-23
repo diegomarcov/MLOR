@@ -10,7 +10,7 @@ action code
 	char charPolitipo = 'a';
 	
 	private String nombrePolitipo(Attrs p){ //entro solo con politipo, y devuevlo 'a, 'b... eso
-		String aux = (String)politipos.get(p);
+		String aux = (String)politipos.get(p.getPolytype());
 		
 		if (aux!=null){
 			return aux;
@@ -21,14 +21,14 @@ action code
 				return "int";
 			}
 			else if (p.getType().equals("politipo con igualdad")){
-				politipos.put(p,"''" + charPolitipo);
+				politipos.put(p.getPolytype(),"''" + charPolitipo);
 				charPolitipo++;
-				return "''" + charPolitipo;
+				return (String)politipos.get(p.getPolytype());
 			}
 			else{
-				politipos.put(p,"'" + charPolitipo);
+				politipos.put(p.getPolytype(),"'" + charPolitipo);
 				charPolitipo++;
-				return "'" + charPolitipo;
+				return (String)politipos.get(p.getPolytype());
 			}
 		}
 	}
@@ -125,7 +125,6 @@ action code
 			//localST.put((String)aux[i],type2);
 			///////////////////////////////
 			cambiarReferencia((String)aux[i],type2);
-			
 		}
 	}
 	
