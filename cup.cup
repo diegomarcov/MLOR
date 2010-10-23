@@ -5,9 +5,33 @@ import java.util.*;
 
 action code
 {:
-	Hashtable st,localST;
+	Hashtable st,localST,politipos;
 	int politipoActual=0;
+	char charPolitipo = 'a';
 	
+	private String nombrePolitipo(Attrs p){ //entro solo con politipo, y devuevlo 'a, 'b... eso
+		String aux = (String)politipos.get(p);
+		
+		if (aux!=null){
+			return aux;
+		}
+		else{
+			if (p.getType().equals("politipo numerico")){
+				p.setType("int");
+				return "int";
+			}
+			else if (p.getType().equals("politipo con igualdad")){
+				politipos.put(p,"''" + charPolitipo);
+				charPolitipo++;
+				return "''" + charPolitipo;
+			}
+			else{
+				politipos.put(p,"'" + charPolitipo);
+				charPolitipo++;
+				return "'" + charPolitipo;
+			}
+		}
+	}
 	
 	//lo cambie para que devuelva el string, porque va a ser mas facil cuando apliquemos recursivamente
 	private String obtenerStringTipo(Attrs tipo){
@@ -38,6 +62,9 @@ action code
 			else
 				aux = obtenerStringTipo(tipo.getDomain());				
 			return aux + " -> " + obtenerStringTipo(tipo.getRange());
+		}
+		else if (tipo.getType().startsWith("politipo")){ //si es cualquier politipo
+			return nombrePolitipo(tipo);
 		}
 		else{
 			System.out.println("estoy en tipo simple");
@@ -371,7 +398,10 @@ MatchingFunc ::= ID:f ID:param {:putLocalID(param.getLexeme());:} //pone el para
 					{:Attrs aux = new Attrs("fun",(Attrs)localST.get(param.getLexeme()), list);
 					  st.put(f.getLexeme(),aux); 
 					  System.out.print(f.getLexeme()+": ");
+					  politipos = new Hashtable();
 					  imprimirTipo(aux);
+					  politipos = null;
+					  charPolitipo = 'a'; //reinicio el contador de politipos
 					  System.out.println(" = fn;");
 					:}
 				|  
