@@ -26,24 +26,78 @@ title{Compiladores e Intérpretes\\Informe del Segundo Proyecto
 \chapter*{Introducción}
 \section*{Descripción}
 
-Este proyecto consiste en la implementación de un intérprete de un subconjunto del lenguaje funcional ML, que devolverá como salida el tipo de la expresión ingresada. Para esto se utilizaron herramientas automáticas (JLex y CUP) 
+Este proyecto consiste en la implementación de un intérprete de un subconjunto del lenguaje funcional ML, que devolverá como salida el tipo de la expresión ingresada. Para esto se utilizaron las herramientas automáticas (JLex y CUP), aplicadas en el entorno del lenguaje de programación Java, que se encargan de generar un parser ascendente que reconoce las cadenas ingresadas y aplica las reglas semánticas convenientemente definidas.
 
 \chapter{Modo de uso}
+\$ \emphasize{java -jar mlinterpreter} [inputFile],
+
+donde \emphasize{inputFile} es un archivo con código ml que puede ingresarse opcionalmente. Si efectivamente se especifica un archivo, su contenido será mostrado por pantalla, y para cada una de las expresiones que contenga, el intérprete mostrará el tipo como la cátedra solicitó. En caso de que \emphasize{no} se especifique ningún archivo, el intérprete leerá instrucciones por pantalla, y mostrará el tipo de cada expresión leída.
+
 
 \section{Requerimientos}
 
-\section{Ejecución}
+Dada la tecnología utilizada para realizar el intérprete, será necesario contar con la máquina virtual de Java (oficialmente fue probado para la versión 1.6) para poder correr el archivo ejecutable \emphasize{mlinterpreter}.
 
 \section{Formato de salida}
+
+El formato de salida utilizado es igual al del lenguaje original ML: todas las funciones poseen un dominio y un rango, que se representan mediante la notaciónDominio -> Rango. Si dicha descripción está dada para una función llamada \emphasize{f}, entonces la salida mostrada por pantalla será:
+
+val f: Dominio -> Rango = fn;
+
+Las expresiones ingresadas en el intérprete y dentro de las funciones pueden ser de tipo \emphasize{int}, \emphasize{real}, \emphasize{bool} (booleano), \emphasize{string}, \emphasize{list} (que a su vez tiene un tipo asociado) y \emphasize{tuple} (que tiene un tipo asociado por cada uno de sus elementos).
 
 \chapter{Lenguaje}
 \section{Alfabeto de entrada}
 
+La gramática original fue ligeramente modificada para sacar algunas ambiguedades (por ejemplo, el hecho de que una derivación de una tupla de un único elemento y una expresión parentizada podían resultar iguales). Además, los operadores de las expresiones fueron separados utilizando las reglas de precedencia definidas en ML (y mencionadas adecuadamente en el enunciado entregado para la realización del intérprete). La gramática resultante, utilizada por CUP para la generación del parser es:
+
+\begin{verbatim}
+
+<Programa> ::= <Lista_sentencias> PUNTO
+
+<Lista_sentencias> ::= <Lista_sentencias> <Sentencia> PTOCOMA | <Sentencia> PTOCOMA
+
+<Sentencia> ::= VAL ID = <Exp_Rel> | <Exp_Rel> | FUN <MatchingFunc>	
+
+<MatchingFunc> ::= ID ID <CurryingList> | ID <TuplePattern> IGUAL <Exp_Rel>
+
+<CurryingList> ::= ID <CurryingList> | IGUAL <Exp_Rel>
+
+<TuplePattern> ::= PARABRE <TuplePattern2> PARCIERRA
+
+<TuplePattern2> ::= <TuplePattern2> COMA ID  | ID
+
+<Exp_Rel>  	::= 	<Exp_Rel> MENOR <Exp_cons> | <Exp_Rel> MAYOR <Exp_cons> | <Exp_Rel> MENORIGUAL <Exp_cons> | <Exp_Rel> MAYORIGUAL <Exp_cons> | <Exp_Rel> DISTINTO <Exp_cons> | <Exp_Rel> IGUAL <Exp_cons> | <Exp_cons>
+
+<Exp_cons> 	::=	<Exp_add> CONS <Exp_cons>| <Exp_add>
+
+<Exp_add>  	::=	<Exp_add> SUMA <Exp_mul> | <Exp_add> RESTA <Exp_mul> | <Exp_add> ORELSE <Exp_mul> | <Exp_add> CONCAT <Exp_mul> | <Exp_mul>
+
+<Exp_mul>  	::=	<Exp_mul> MUL <Exp_un> | <Exp_mul> DIVREAL <Exp_un> | <Exp_mul> DIVINT <Exp_un> | <Exp_mul> MOD <Exp_un> | <Exp_mul> ANDALSO <Exp_un> | <Exp_un>
+
+<Exp_un>   	::=	NOT <Exp_fun> | MINUS<Exp_fun> | <Exp_fun>
+
+<Exp_fun>  	::= 	<Exp_fun> <Exp_atom> | <Exp_atom>
+
+<Exp_atom>	::=	INT | REAL | STRING | ID | NIL | PARABRE <Exp_Rel> PARCIERRA | <Tuple> | <List>
+
+<Tuple> 	::= PARABRE <Exp_Rel>COMA <Tuple2> PARCIERRA
+
+<Tuple2> 	::= <Tuple2>COMA <Exp_Rel> | <Exp_Rel>
+
+<List> 		::= CORABRE <List2> CORCIERRA
+
+<List2> 	::= <List2> COMA <Exp_Rel> | <Exp_Rel>
+\end{verbatim}
 
 \section{Errores detectados}
 
+INDICAR ERRORES DETECTADOS.
+
 \chapter{Analizador léxico}
 \section{Palabras reservadas}
+El analizador léxico mantiene algunas palabras reservadas que no puede ser redefinidas por el usuario para nombrar una función o un valor; dichas palabras son los operadores lógicos \emphasize{orelse} y \emphasize{andalso}, los operadores aritméticos \emphasize{div} y \emphasize{mod}, el operador unario \emphasize{not}, el indicador de lista vacía \emphasize{nil}, el prefijo de las funciones \emphasize{fun}, y el de los valores, \emphasize{val}.
 
+Nótese que \emphasize{true} y \emphasize{false} no son palabras reservadas, sino variables booleanas insertadas por defecto en la tabla de símbolos, por lo que podrían redefinirse al valor que el usuario del intérprete desee.
 
 \end{document}
