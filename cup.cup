@@ -40,19 +40,30 @@ action code
 		System.out.println("entre a obtenerStringTipo" + tipo);
 		if (tipo.getType().equals("list")){
 			System.out.println("estoy en lista");
-			return obtenerStringTipo(tipo.getListType())+" list";
+			if (tipo.getListType().getType().equals("fun"))
+				aux = "(" + obtenerStringTipo(tipo.getListType()) + ")";
+			else
+				aux = obtenerStringTipo(tipo.getListType());				
+			System.out.println(aux);
+			return aux+" list";
 		}
 		else if (tipo.getType().equals("tuple")){
 			System.out.println("estoy en tupla");
 			list = tipo.getTupleTypes();
 			aux = "(";
 			for (int i=0;i<list.size();i++){
-				aux+=obtenerStringTipo(list.get(i));
+				if (list.get(i).getType().equals("fun"))
+					aux += "(" + obtenerStringTipo(list.get(i)) + ")";
+				else
+					aux += obtenerStringTipo(list.get(i));				
+				//System.out.println(aux);
+				//aux+=obtenerStringTipo(list.get(i));
 				if (i!=list.size()-1){
 					aux+=" * ";
 				}
 			}
 			aux+=")";
+			System.out.println(aux);
 			return aux;
 		}
 		else if (tipo.getType().equals("fun")){
@@ -61,6 +72,7 @@ action code
 				aux = "(" + obtenerStringTipo(tipo.getDomain()) + ")";
 			else
 				aux = obtenerStringTipo(tipo.getDomain());				
+			System.out.println(aux);
 			return aux + " -> " + obtenerStringTipo(tipo.getRange());
 		}
 		else if (tipo.getType().startsWith("politipo")){ //si es cualquier politipo
@@ -117,33 +129,33 @@ action code
 	
 	private void clonarTipos(Attrs type1,Attrs type2){ //type2 es el mas especifico
 		Object[] aux;
-		System.out.println("entra a clonar");
+		
 		type2.mergeInvolvedIDs(type1.getInvolvedIDs());
+		
 		aux = type2.getInvolvedIDs().toArray();
-		for (int i=0;i<aux.length;i++){
-			///////////////////////////////
-			//localST.put((String)aux[i],type2);
-			///////////////////////////////
-			cambiarReferencia((String)aux[i],type2);
+		if (localST!=null){ //cambio la referencia cuando estoy en ambiente de fun
+			for (int i=0;i<aux.length;i++){
+				cambiarReferencia((String)aux[i],type2);
+			}
 		}
 	}
 	
-	private void corregirTupla(Attrs tupla){ //corrige las referencias de la tupla para que apunten a los lugares nuevos, en el caso que alguna variable haya cambiado de tipo
-		ArrayList<Attrs> auxList = new ArrayList<Attrs>();
-		ArrayList<Attrs> oldList = tupla.getTupleTypes();
-		Object[] ids;
+	// private void corregirTupla(Attrs tupla){ //corrige las referencias de la tupla para que apunten a los lugares nuevos, en el caso que alguna variable haya cambiado de tipo
+		// ArrayList<Attrs> auxList = new ArrayList<Attrs>();
+		// ArrayList<Attrs> oldList = tupla.getTupleTypes();
+		// Object[] ids;
 		
-		for (int i = 0;i< tupla.getTupleLenght();i++){
+		// for (int i = 0;i< tupla.getTupleLenght();i++){
 
-			ids = oldList.get(i).getInvolvedIDs().toArray();
+			// ids = oldList.get(i).getInvolvedIDs().toArray();
 			
-			if (ids.length>0)
-				auxList.add((Attrs)localST.get((String)ids[0]));
-			else
-				auxList.add(oldList.get(i));
-		}
-		tupla.setTupleTypes(auxList);
-	}
+			// if (ids.length>0)
+				// auxList.add((Attrs)localST.get((String)ids[0]));
+			// else
+				// auxList.add(oldList.get(i));
+		// }
+		// tupla.setTupleTypes(auxList);
+	// }
 	
 	private void cambiarReferencia(String s,Attrs t){
 		int posPar,pos;
@@ -203,7 +215,7 @@ action code
 	
 	private void apuntarTipos(Attrs type1,Attrs type2){
 		String t2 = type2.getType();
-		
+		ArrayList<Attrs> list;
 		if (t2.equals("fun")){
 			apuntarVariables(type2.getRange(),">",type1.getInvolvedIDs());
 			apuntarVariables(type2.getDomain(),"-",type1.getInvolvedIDs());
@@ -211,16 +223,14 @@ action code
 		else if (t2.equals("list")){
 			apuntarVariables(type2.getListType(),"[",type1.getInvolvedIDs());
 		}
+		else if (t2.equals("tuple")){
+			list = type2.getTupleTypes();
+			System.out.println("entre a apuntar tipos tupla " +list.size());
+			for (int i = 0; i<list.size();i++)
+				apuntarVariables(list.get(i),"("+i+")",type1.getInvolvedIDs());
+		}
 	}
 	
-	private void apuntarTiposTupla(Attrs t, Attrs tupla, int pos,int index){
-		ArrayList<Attrs> list;
-		
-		list = tupla.getTupleTypes();
-		System.out.println("entre a apuntar tipos tupla " +list.size());
-		
-		apuntarVariables(list.get(index),"("+pos+")",t.getInvolvedIDs());
-	}
 	
 	//devuelve el tipo más específico, y CAMBIA los valores de los tipos para que sean iguales. 
 	//de no haber compatibilidad, devuelve null
@@ -288,7 +298,8 @@ action code
 					//si uno de los tipos es un politipo, lo clonamos al otro
 					
 					/////////////////////////////
-					apuntarTipos(type1,type2);
+					if (localST!=null) //solo apunto si estoy en ambiente de fun
+						apuntarTipos(type1,type2);
 					////////////////////////////
 					
 					clonarTipos(type1,type2); //puede ser necesario borrar las listas
@@ -298,7 +309,8 @@ action code
 					//si uno de los tipos es un politipo, lo clonamos al otro
 					
 					/////////////////////////////
-					apuntarTipos(type2,type1);
+					if (localST!=null) //solo apunto si estoy en ambiente de fun
+						apuntarTipos(type2,type1);
 					////////////////////////////
 					
 					clonarTipos(type2,type1); //puede ser necesario borrar las listas
@@ -334,16 +346,16 @@ action code
 
 parser code 
 {:
-	public static void main(String args[])
+	public static void main(String args[]) throws Exception //le puse esto para que dejara de decir "null" cuando hay un pete y que tire un error mas copado
 	{
-		try
-		{
+		// try
+		// {
 			new parser(new Yylex(System.in)).parse();
-		}
-		catch (Exception e)
-		{
-			System.err.println(e.getMessage());
-		}
+		// }
+		// catch (Exception e)
+		// {
+			// System.err.println(e.getMessage());
+		// }
 	}
 	
 	
@@ -357,6 +369,7 @@ non terminal Attrs Sentencia, MatchingFunc, CurryingList, TuplePattern, TuplePat
 
 Programa ::= 	{: 	
 					st=new Hashtable(); 
+					politipos = new Hashtable();
 					System.out.println("Succesfully created symbol table!"); 
 				:} 
 				Lista_sentencias 	{: System.out.println("Succesfully parsed!"); :} 
@@ -397,9 +410,9 @@ MatchingFunc ::= ID:f ID:param {:putLocalID(param.getLexeme());:} //pone el para
 					{:Attrs aux = new Attrs("fun",(Attrs)localST.get(param.getLexeme()), list);
 					  st.put(f.getLexeme(),aux); 
 					  System.out.print(f.getLexeme()+": ");
-					  politipos = new Hashtable();
+					  // politipos = new Hashtable();
 					  imprimirTipo(aux);
-					  politipos = null;
+					  politipos = new Hashtable();
 					  charPolitipo = 'a'; //reinicio el contador de politipos
 					  System.out.println(" = fn;");
 					:}
@@ -513,27 +526,21 @@ Exp_atom	::=	INT {: RESULT = new Attrs("int"); :}
 Tuple 	::= PARABRE Exp_Rel:e COMA Tuple2:t2 PARCIERRA {:
 														t2.addTupleTypeBegin(e);
 														
-														corregirTupla(t2);
-														if (!esTipoSimple(e))
-															apuntarTiposTupla(e,t2,0,0);
+														//corregirTupla(t2); //lo saco porque la tupla ya se esta corrigiendo sola, con la implementacion de lista de apuntados
 														RESULT = t2; 
 													   :}; /////////////////////// hay que hacer un ultimo recorrido buscando id relacionados y cambiar los tipos de la tupla
 
 Tuple2 	::= Tuple2:t COMA Exp_Rel:e 
 			{:
 				t.addTupleTypeFinal(e);
-				if (!esTipoSimple(e))
-					apuntarTiposTupla(e,t,t.getTupleTypes().size()-1,t.getTupleTypes().size()-1);
 				RESULT = t;
 			:}
 			| 
 			Exp_Rel:e {: 
 						Attrs t = new Attrs("tuple", new ArrayList());
 						t.addTupleTypeFinal(e);
-						System.out.println("e: "+e);
-						if (!esTipoSimple(e))
-							apuntarTiposTupla(e,t,1,0);
 						RESULT = t;
+						System.out.println("e: "+e);
 					  :};
 
 List 		::= CORABRE List2:l CORCIERRA {:RESULT = l;:};
