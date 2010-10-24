@@ -140,22 +140,36 @@ action code
 		}
 	}
 	
-	// private void corregirTupla(Attrs tupla){ //corrige las referencias de la tupla para que apunten a los lugares nuevos, en el caso que alguna variable haya cambiado de tipo
-		// ArrayList<Attrs> auxList = new ArrayList<Attrs>();
-		// ArrayList<Attrs> oldList = tupla.getTupleTypes();
-		// Object[] ids;
+	private void corregirTupla(Attrs tupla){ //corrige las referencias de la tupla para que apunten a los lugares nuevos, en el caso que alguna variable haya cambiado de tipo
+		ArrayList<Attrs> auxList = new ArrayList<Attrs>();
+		ArrayList<Attrs> oldList = tupla.getTupleTypes();
+		Attrs aux;
+		Object[] ids;
+		String s;
 		
-		// for (int i = 0;i< tupla.getTupleLenght();i++){
+		if (localST!=null){
+			for (int i = 0;i< tupla.getTupleLenght();i++){
 
-			// ids = oldList.get(i).getInvolvedIDs().toArray();
-			
-			// if (ids.length>0)
-				// auxList.add((Attrs)localST.get((String)ids[0]));
-			// else
-				// auxList.add(oldList.get(i));
-		// }
-		// tupla.setTupleTypes(auxList);
-	// }
+				ids = oldList.get(i).getInvolvedIDs().toArray();
+				
+				if (ids.length>0){
+					s = (String)ids[0];
+					if (Character.isLetter(s.charAt(0))){
+						aux = (Attrs)localST.get((String)ids[0]);
+						if (aux!=null)
+							auxList.add(aux);
+						else
+							auxList.add(oldList.get(i));
+					}
+					else
+						auxList.add(oldList.get(i));
+				}
+				else
+					auxList.add(oldList.get(i));
+			}
+			tupla.setTupleTypes(auxList);
+		}
+	}
 	
 	private void cambiarReferencia(String s,Attrs t){
 		int posPar,pos;
@@ -370,6 +384,9 @@ non terminal Attrs Sentencia, MatchingFunc, CurryingList, TuplePattern, TuplePat
 Programa ::= 	{: 	
 					st=new Hashtable(); 
 					politipos = new Hashtable();
+					Attrs b = new Attrs ("boolean");
+					st.put("true",b);
+					st.put("false",b);
 					System.out.println("Succesfully created symbol table!"); 
 				:} 
 				Lista_sentencias 	{: System.out.println("Succesfully parsed!"); :} 
@@ -451,10 +468,99 @@ Exp_add  	::=	Exp_add:e1 OPADD Exp_mul:e2
 					}
 				:}
 				| 
-				Exp_add ORELSE Exp_mul | Exp_add CONCAT Exp_mul | Exp_mul:e {: RESULT = e; :};
+				Exp_add:e1 ORELSE Exp_mul:e2
+				{:
+					Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						t = tipoMasEspecifico(t,new Attrs ("boolean"));
+						if (t!=null){
+							RESULT = t;
+						}else{
+							throw new Exception("Boolean expected.");
+						}
+					}else{
+						throw new Exception("Boolean expected.");
+					}
+				:}
+				| 
+				Exp_add CONCAT Exp_mul | Exp_mul:e {: RESULT = e; :};
 
-Exp_mul  	::=	Exp_mul MUL Exp_un | Exp_mul DIVREAL Exp_un | Exp_mul DIVINT Exp_un |
-				Exp_mul MOD Exp_un | Exp_mul ANDALSO Exp_un | Exp_un:e {: RESULT = e; :};
+Exp_mul  	::=	Exp_mul:e1 MUL Exp_un:e2
+				{:
+					Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						t = tipoMasEspecifico(t,crearPolitipo("politipo numerico"));
+						if (t!=null){
+							RESULT = t;
+						}else{
+							throw new Exception("Integer or real expected.");
+						}
+					}else{
+						throw new Exception("Integer or real expected.");
+					}
+				:}
+				| 
+				Exp_mul:e1 DIVREAL Exp_un:e2
+				{:
+				Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						t = tipoMasEspecifico(t,new Attrs("real"));
+						if (t!=null){
+							RESULT = t;
+						}else{
+							throw new Exception("Real expected.");
+						}
+					}else{
+						throw new Exception("Real expected.");
+					}
+				:}
+				|
+				Exp_mul:e1 DIVINT Exp_un:e2
+				{:
+				Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						t = tipoMasEspecifico(t,new Attrs("int"));
+						if (t!=null){
+							RESULT = t;
+						}else{
+							throw new Exception("Integer expected.");
+						}
+					}else{
+						throw new Exception("Integer expected.");
+					}
+				:}
+				|
+				Exp_mul:e1 MOD Exp_un:e2
+				{:
+				Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						t = tipoMasEspecifico(t,new Attrs("int"));
+						if (t!=null){
+							RESULT = t;
+						}else{
+							throw new Exception("Integer expected.");
+						}
+					}else{
+						throw new Exception("Integer expected.");
+					}
+				:}
+				| 
+				Exp_mul:e1 ANDALSO Exp_un:e2
+				{:
+				Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						t = tipoMasEspecifico(t,new Attrs("boolean"));
+						if (t!=null){
+							RESULT = t;
+						}else{
+							throw new Exception("Boolean expected.");
+						}
+					}else{
+						throw new Exception("Boolean expected.");
+					}
+				:}
+				|
+				Exp_un:e {: RESULT = e; :};
 
 Exp_un   	::=	NOT Exp_fun:fun 
 				{: 	Attrs t = tipoMasEspecifico(fun, new Attrs("boolean"));
@@ -526,7 +632,7 @@ Exp_atom	::=	INT {: RESULT = new Attrs("int"); :}
 Tuple 	::= PARABRE Exp_Rel:e COMA Tuple2:t2 PARCIERRA {:
 														t2.addTupleTypeBegin(e);
 														
-														//corregirTupla(t2); //lo saco porque la tupla ya se esta corrigiendo sola, con la implementacion de lista de apuntados
+														corregirTupla(t2); //lo saco porque la tupla ya se esta corrigiendo sola, con la implementacion de lista de apuntados
 														RESULT = t2; 
 													   :}; /////////////////////// hay que hacer un ultimo recorrido buscando id relacionados y cambiar los tipos de la tupla
 
