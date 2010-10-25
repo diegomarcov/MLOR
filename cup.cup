@@ -37,7 +37,7 @@ action code
 	private String obtenerStringTipo(Attrs tipo){
 	ArrayList<Attrs> list;
 	String aux;
-		System.out.println("entre a obtenerStringTipo" + tipo);
+		//System.out.println("entre a obtenerStringTipo" + tipo);
 		if (tipo.getType().equals("list")){
 			System.out.println("estoy en lista");
 			if (tipo.getListType().getType().equals("fun"))
@@ -48,7 +48,7 @@ action code
 			return aux+" list";
 		}
 		else if (tipo.getType().equals("tuple")){
-			System.out.println("estoy en tupla");
+			//System.out.println("estoy en tupla");
 			list = tipo.getTupleTypes();
 			aux = "(";
 			for (int i=0;i<list.size();i++){
@@ -67,19 +67,19 @@ action code
 			return aux;
 		}
 		else if (tipo.getType().equals("fun")){
-			System.out.println("estoy en fun");
+			//System.out.println("estoy en fun");
 			if (tipo.getDomain().getType().equals("fun"))
 				aux = "(" + obtenerStringTipo(tipo.getDomain()) + ")";
 			else
 				aux = obtenerStringTipo(tipo.getDomain());				
-			System.out.println(aux);
+			//System.out.println(aux);
 			return aux + " -> " + obtenerStringTipo(tipo.getRange());
 		}
 		else if (tipo.getType().startsWith("politipo")){ //si es cualquier politipo
 			return nombrePolitipo(tipo);
 		}
 		else{
-			System.out.println("estoy en tipo simple");
+			//System.out.println("estoy en tipo simple");
 			return tipo.getType();
 		}
 	}	
@@ -87,6 +87,11 @@ action code
 	private boolean esTipoSimple(Attrs type1){
 		String t1 = type1.getType();
 		return (t1.equals("int") || t1.equals("real") || t1.equals("boolean") || t1.equals("string"));
+	}
+	
+	private boolean esTipoTextOrNum(Attrs type1){
+		String t1 = type1.getType();
+		return (t1.equals("int") || t1.equals("real") || t1.equals("string"));
 	}
 	
 	private void imprimirTipo(Attrs tipo){
@@ -112,7 +117,7 @@ action code
 		if (localST.get(id)==null){
 			Attrs aux =crearPolitipo("politipo");
 			localST.put(id,aux);
-			System.out.println("insertando " + id + " a la tabla local con " + aux.getType());
+			//System.out.println("insertando " + id + " a la tabla local con " + aux.getType());
 			return true;
 		}
 		else{
@@ -171,6 +176,17 @@ action code
 		}
 	}
 	
+	private void corregirPolitiposNum(){
+		// Object[] entries = localST.entrySet().toArray();
+		Attrs aux;
+		for (Enumeration e = localST.elements();e.hasMoreElements() ;){
+			aux = ((Attrs)e.nextElement());
+			if (aux.getType().equals("politipo numerico")){
+				aux.setType("int");
+			}
+		}
+	}
+	
 	private void cambiarReferencia(String s,Attrs t){
 		int posPar,pos;
 		
@@ -179,7 +195,7 @@ action code
 		else{
 			
 			if (s.charAt(0)=='>'){
-				System.out.println("se cambia el rango de una funcion");
+				// System.out.println("se cambia el rango de una funcion");
 				cambiarReferencia2(s.substring(1)).setRange(t);
 			}
 			else if (s.charAt(0)=='-'){
@@ -220,10 +236,10 @@ action code
 	
 	private void apuntarVariables(Attrs t, String prefix, HashSet<String> set){
 		Object[] aux = set.toArray();
-		System.out.println("entro a apuntar Variables");
+		// System.out.println("entro a apuntar Variables");
 		for (int i=0;i<aux.length;i++){
 			t.agregarID(prefix+aux[i]);
-			System.out.println("se apunto " + prefix+aux[i]);
+			// System.out.println("se apunto " + prefix+aux[i]);
 		}
 	}
 	
@@ -239,7 +255,7 @@ action code
 		}
 		else if (t2.equals("tuple")){
 			list = type2.getTupleTypes();
-			System.out.println("entre a apuntar tipos tupla " +list.size());
+			// System.out.println("entre a apuntar tipos tupla " +list.size());
 			for (int i = 0; i<list.size();i++)
 				apuntarVariables(list.get(i),"("+i+")",type1.getInvolvedIDs());
 		}
@@ -254,10 +270,10 @@ action code
 		Attrs tResult;
 		t1 = type1.getType();
 		t2 = type2.getType();
-		System.out.println("entra veron con " + t1 +" y "+ t2);
+		// System.out.println("entra veron con " + t1 +" y "+ t2);
 		if ((esTipoSimple(type1)) && (esTipoSimple(type2)) && t1.equals(t2)){
 		//si ambos son tipos simples o iguales, todo OK
-			System.out.println("entro a tipo simple ");
+			// System.out.println("entro a tipo simple ");
 			return type1;
 		}
 		else{
@@ -364,11 +380,12 @@ parser code
 	{
 		// try
 		// {
+			// System.out.print("MLOR> ");
 			new parser(new Yylex(System.in)).parse();
 		// }
 		// catch (Exception e)
 		// {
-			// System.err.println(e.getMessage());
+			// System.err.println("Error: " + e.getMessage());
 		// }
 	}
 	
@@ -387,33 +404,41 @@ Programa ::= 	{:
 					Attrs b = new Attrs ("boolean");
 					st.put("true",b);
 					st.put("false",b);
-					System.out.println("Succesfully created symbol table!"); 
+					
 				:} 
-				Lista_sentencias 	{: System.out.println("Succesfully parsed!"); :} 
-				PUNTO	{: System.out.println("PUNTO found!"); :} 
+				Lista_sentencias 	
+				PUNTO	
 				;
 
 Lista_sentencias ::= 	Lista_sentencias 
-						{: System.out.println("Leyendo otra sentencia"); :}
 						Sentencia 
 						PTOCOMA 
+						
 						| 
-						{: System.out.println("Entrando a leer la primer sentencia"); :}
 						Sentencia 
-						{: System.out.println("; found!"); :}
-						PTOCOMA	
+						PTOCOMA
+						
 						;
 
-Sentencia ::= 	VAL {: System.out.println("VAL found!");:}
-				ID:id	{: System.out.println("ID found!"); :}
-				IGUAL 	{: System.out.println("= found!"); :}
-				Exp_Rel:exp {: System.out.println("Rest of Exp_Rel found!"); 
-						st.put(id.getLexeme(),exp);:}
+Sentencia ::= 	VAL
+				ID:id	
+				IGUAL 
+				Exp_Rel:exp 
+				{:  
+					
+					st.put(id.getLexeme(),exp);
+					System.out.print("val "+id.getLexeme()+": ");
+					imprimirTipo(exp);
+					System.out.println("");
+					charPolitipo = 'a'; //reinicio el contador de politipos
+				:}
 				| 
 				Exp_Rel:exp
 				{: 	st.put("it",exp);
 					System.out.print("val it: ");
 					imprimirTipo(exp);
+					System.out.println("");
+					charPolitipo = 'a'; //reinicio el contador de politipos
 				:}
 				| 
 				FUN 
@@ -425,8 +450,9 @@ Sentencia ::= 	VAL {: System.out.println("VAL found!");:}
 MatchingFunc ::= ID:f ID:param {:putLocalID(param.getLexeme());:} //pone el parametro con un politipo
 				CurryingList:list  
 					{:Attrs aux = new Attrs("fun",(Attrs)localST.get(param.getLexeme()), list);
+					  corregirPolitiposNum();
 					  st.put(f.getLexeme(),aux); 
-					  System.out.print(f.getLexeme()+": ");
+					  System.out.print("val "+ f.getLexeme()+": ");
 					  // politipos = new Hashtable();
 					  imprimirTipo(aux);
 					  politipos = new Hashtable();
@@ -437,7 +463,18 @@ MatchingFunc ::= ID:f ID:param {:putLocalID(param.getLexeme());:} //pone el para
 				ID:f
 				TuplePattern:tuple
 				IGUAL
-				Exp_Rel:exp {:st.put(f.getLexeme(), new Attrs("fun",tuple,exp));:};
+				Exp_Rel:exp 
+				{:
+					corregirTupla(tuple);
+					corregirPolitiposNum();
+					Attrs aux = new Attrs("fun",tuple,exp);
+					st.put(f.getLexeme(), aux);
+					System.out.print("val "+ f.getLexeme()+": ");
+					imprimirTipo(aux);
+					politipos = new Hashtable();
+					charPolitipo = 'a'; //reinicio el contador de politipos
+					System.out.println(" = fn;");
+				:};
 
 CurryingList ::= ID:id {:putLocalID(id.getLexeme());:}
 				CurryingList:list {:RESULT = new Attrs("fun",(Attrs)localST.get(id.getLexeme()),list);:}
@@ -445,13 +482,68 @@ CurryingList ::= ID:id {:putLocalID(id.getLexeme());:}
 
 TuplePattern ::= PARABRE TuplePattern2:tp PARCIERRA{:RESULT = tp; :};
 
-TuplePattern2 ::= TuplePattern2 COMA ID:id {:putLocalID(id.getLexeme());:}  
+TuplePattern2 ::= TuplePattern2:t COMA ID:id 
+					{:
+						putLocalID(id.getLexeme());
+						Attrs aux = crearPolitipo("politipo");
+						aux.agregarID(id.getLexeme());
+						t.addTupleTypeFinal(aux);
+						RESULT = t;
+					:}
 					| 
-					ID:id {:putLocalID(id.getLexeme());:};
+					ID:id 
+					{:
+						putLocalID(id.getLexeme());
+						Attrs t = new Attrs("tuple", new ArrayList());
+						Attrs aux = crearPolitipo("politipo");
+						aux.agregarID(id.getLexeme());
+						t.addTupleTypeFinal(aux);
+						RESULT = t;
+					:};
 
-Exp_Rel  	::= Exp_Rel OPREL Exp_cons| Exp_Rel IGUAL Exp_cons | Exp_cons:e {: RESULT = e; :};
+Exp_Rel  	::= Exp_Rel:e1 OPREL Exp_cons:e2
+				{:
+					Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						if (esTipoTextOrNum(t)){
+							RESULT = new Attrs("boolean");
+						}else{
+							throw new Exception("String or num expected.");
+						}
+					}else{
+						throw new Exception("String or num expected.");
+					}
+				:}
+				| 
+				Exp_Rel:e1 IGUAL Exp_cons:e2
+				{:
+					Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						t = tipoMasEspecifico(t,crearPolitipo("politipo con igualdad"));
+						if (t!=null){
+							RESULT = new Attrs("boolean");
+						}else{
+							throw new Exception("Function does not admit equality.");
+						}
+					}else{
+						throw new Exception("Types are not compatibles in the equality");
+					}
+				:}
+				|
+				Exp_cons:e {: RESULT = e; :};
 				
-Exp_cons 	::=	Exp_add CONS Exp_cons | Exp_add:e {: RESULT = e; :};
+Exp_cons 	::=	Exp_add:e1 CONS Exp_cons:e2
+				{:
+					Attrs t = tipoMasEspecifico(new Attrs("list",e1),e2);
+					if (t!=null){
+						RESULT = t;
+					}
+					else{
+						throw new Exception("The list has elements of different types.");
+					}
+				:}
+				|
+				Exp_add:e {: RESULT = e; :};
 
 Exp_add  	::=	Exp_add:e1 OPADD Exp_mul:e2
 				{:
@@ -483,7 +575,23 @@ Exp_add  	::=	Exp_add:e1 OPADD Exp_mul:e2
 					}
 				:}
 				| 
-				Exp_add CONCAT Exp_mul | Exp_mul:e {: RESULT = e; :};
+				Exp_add:e1 CONCAT Exp_mul:e2
+				
+				{:
+					Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						t = tipoMasEspecifico(t,new Attrs ("string"));
+						if (t!=null){
+							RESULT = t;
+						}else{
+							throw new Exception("String expected.");
+						}
+					}else{
+						throw new Exception("String expected.");
+					}
+				:}
+				|
+				Exp_mul:e {: RESULT = e; :};
 
 Exp_mul  	::=	Exp_mul:e1 MUL Exp_un:e2
 				{:
@@ -618,7 +726,7 @@ Exp_atom	::=	INT {: RESULT = new Attrs("int"); :}
 							throw new Exception("Undeclared identifier (" + id.getLexeme() +")");
 					  :}
 				| 
-				NIL {: RESULT = new Attrs("list") ;:}
+				NIL {: RESULT = new Attrs("list",crearPolitipo("politipo")) ;:}
 				| 
 				PARABRE 
 				Exp_Rel:e {:// e.deleteInvolvedIDs(); // se supone que los tipos de los id estan resueltos
@@ -646,7 +754,6 @@ Tuple2 	::= Tuple2:t COMA Exp_Rel:e
 						Attrs t = new Attrs("tuple", new ArrayList());
 						t.addTupleTypeFinal(e);
 						RESULT = t;
-						System.out.println("e: "+e);
 					  :};
 
 List 		::= CORABRE List2:l CORCIERRA {:RESULT = l;:};

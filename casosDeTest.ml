@@ -1,4 +1,7 @@
+2;
+false;
 2.0 / 3.0;
+
 fun f x = (false,2.0*3.6/x);
 fun f x = (x,false,2.0*3.6/x,x);
 fun f x y = (1,y x,x+1);
