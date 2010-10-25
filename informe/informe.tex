@@ -33,7 +33,7 @@ Este proyecto consiste en la implementación de un intérprete de un subconjunto d
 
 donde \emphasize{inputFile} es un archivo con código ml que puede ingresarse opcionalmente. Si efectivamente se especifica un archivo, su contenido será mostrado por pantalla, y para cada una de las expresiones que contenga, el intérprete mostrará el tipo como la cátedra solicitó. En caso de que \emphasize{no} se especifique ningún archivo, el intérprete leerá instrucciones por pantalla, y mostrará el tipo de cada expresión leída.
 
-
+Para realizar una asignación se utiliza val \emphasize{X} = \emphasize{Y};, siendo \emphasize{X} el nombre de la variable que recibirá el resultado, e \emphasize{Y} la expresión que se asignará a \emphasize{X}. En caso de que únicamente se ingrese una expresión, ésta se ligará por defecto a la variable \emphasize{it}.
 \section{Requerimientos}
 
 Dada la tecnología utilizada para realizar el intérprete, será necesario contar con la máquina virtual de Java (oficialmente fue probado para la versión 1.6) para poder correr el archivo ejecutable \emphasize{mlinterpreter}.
