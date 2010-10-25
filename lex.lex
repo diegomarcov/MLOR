@@ -17,6 +17,7 @@ STRING = \"[^\"^\n]*\"
 ID = [a-z][a-z_0-9]*
 OPREL = "<="|"<"|">="|">"
 OPADD = \+|-
+COMMENT = #.*\n
 %%
 
 
@@ -48,6 +49,6 @@ OPADD = \+|-
 {NUMERO}	{ return new Symbol(sym.INT,new Integer(yytext()));}
 {STRING}	{ return new Symbol(sym.STRING, yytext());}
 {ID}		{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
-
+{COMMENT}	{ /* ignora comentarios. */ }
 {BLANCOS}	{ /* ignora espacios en blanco. */ }
 .			{ throw new Exception("Lexical Error: "+yytext()+" en línea "+(yyline+1)); }
