@@ -39,12 +39,12 @@ action code
 	String aux;
 		//System.out.println("entre a obtenerStringTipo" + tipo);
 		if (tipo.getType().equals("list")){
-			System.out.println("estoy en lista");
+			// System.out.println("estoy en lista");
 			if (tipo.getListType().getType().equals("fun"))
 				aux = "(" + obtenerStringTipo(tipo.getListType()) + ")";
 			else
 				aux = obtenerStringTipo(tipo.getListType());				
-			System.out.println(aux);
+			// System.out.println(aux);
 			return aux+" list";
 		}
 		else if (tipo.getType().equals("tuple")){
@@ -63,7 +63,7 @@ action code
 				}
 			}
 			aux+=")";
-			System.out.println(aux);
+			// System.out.println(aux);
 			return aux;
 		}
 		else if (tipo.getType().equals("fun")){
@@ -392,7 +392,7 @@ parser code
 	
 :}
 
-terminal Token PUNTO, PTOCOMA, IGUAL, COMA, OPREL, CONS, OPADD, ORELSE, CONCAT, MUL, DIVREAL, DIVINT, MOD, ANDALSO, NOT, MINUS, PARABRE, PARCIERRA, CORABRE, CORCIERRA, NIL, FUN, VAL, ID, INT, REAL, STRING;
+terminal Token PUNTO, PTOCOMA, IGUAL, COMA, OPREL, CONS, OPADD, ORELSE, CONCAT, MUL, DIVREAL, DIVINT, MOD, ANDALSO, NOT, MINUS, PARABRE, PARCIERRA, CORABRE, CORCIERRA, NIL, FUN, VAL, ID, INT, REAL, STRING, DISTINTO;
 
 non terminal Programa, Lista_sentencias;
 
@@ -515,7 +515,7 @@ Exp_Rel  	::= Exp_Rel:e1 OPREL Exp_cons:e2
 					}
 				:}
 				| 
-				Exp_Rel:e1 IGUAL Exp_cons:e2
+				Exp_Rel:e1 DISTINTO Exp_cons:e2
 				{:
 					Attrs t = tipoMasEspecifico(e1,e2);
 					if (t!=null){
@@ -523,6 +523,22 @@ Exp_Rel  	::= Exp_Rel:e1 OPREL Exp_cons:e2
 						if (t!=null){
 							RESULT = new Attrs("boolean");
 						}else{
+							throw new Exception("Function does not admit equality.");
+						}
+					}else{
+						throw new Exception("Type clash.");
+					}
+				:}
+				| 
+				Exp_Rel:e1 IGUAL Exp_cons:e2
+				{:
+					Attrs t = tipoMasEspecifico(e1,e2);
+					if (t!=null){
+						t = tipoMasEspecifico(t,crearPolitipo("politipo con igualdad"));
+						if (t!=null){
+							RESULT= new Attrs("boolean");
+						}
+						else{
 							throw new Exception("Function does not admit equality.");
 						}
 					}else{
@@ -740,9 +756,9 @@ Exp_atom	::=	INT {: RESULT = new Attrs("int"); :}
 Tuple 	::= PARABRE Exp_Rel:e COMA Tuple2:t2 PARCIERRA {:
 														t2.addTupleTypeBegin(e);
 														
-														corregirTupla(t2); //lo saco porque la tupla ya se esta corrigiendo sola, con la implementacion de lista de apuntados
+														corregirTupla(t2); 
 														RESULT = t2; 
-													   :}; /////////////////////// hay que hacer un ultimo recorrido buscando id relacionados y cambiar los tipos de la tupla
+													   :}; 
 
 Tuple2 	::= Tuple2:t COMA Exp_Rel:e 
 			{:

@@ -13,16 +13,18 @@ PUNTO = \.
 NUMERO = [0-9]+
 BLANCOS = [ \t\r\n\f]+
 REAL = [0-9]+\.[0-9]+
-STRING = \".*\"
+STRING = \"[^\"^\n]*\"
 ID = [a-z][a-z_0-9]*
-OPREL = <>|<=|<|>=|>
+OPREL = "<="|"<"|">="|">"
 OPADD = \+|-
 %%
+
 
 {PUNTO}		{ return new Symbol(sym.PUNTO, new Token(sym.PUNTO, yytext(), yyline+1));}
 ";"			{ return new Symbol(sym.PTOCOMA, new Token(sym.PTOCOMA, yytext(), yyline+1));}
 "="			{ return new Symbol(sym.IGUAL);}
 ","			{ return new Symbol(sym.COMA, new Token(sym.COMA, yytext(), yyline+1));}
+"<>"		{ return new Symbol(sym.DISTINTO, new Token(sym.DISTINTO, yytext(), yyline+1));}
 {OPREL}		{ return new Symbol(sym.OPREL, new Token(sym.OPREL, yytext(), yyline+1));}
 "::"		{ return new Symbol(sym.CONS, new Token(sym.CONS, yytext(), yyline+1));}
 {OPADD}		{ return new Symbol(sym.OPADD, new Token(sym.OPADD, yytext(), yyline+1));}
@@ -46,5 +48,6 @@ OPADD = \+|-
 {NUMERO}	{ return new Symbol(sym.INT,new Integer(yytext()));}
 {STRING}	{ return new Symbol(sym.STRING, yytext());}
 {ID}		{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
+
 {BLANCOS}	{ /* ignora espacios en blanco. */ }
-.			{ throw new Exception("Error léxico: "+yytext()+" en línea "+(yyline+1)); }
+.			{ throw new Exception("Lexical Error: "+yytext()+" en línea "+(yyline+1)); }
