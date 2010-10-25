@@ -9,6 +9,11 @@ action code
 	int politipoActual=0;
 	char charPolitipo = 'a';
 	
+	
+	private void imprimirPrompt(){
+		System.out.print("MLOR> ");
+	}
+	
 	private String nombrePolitipo(Attrs p){ //entro solo con politipo, y devuevlo 'a, 'b... eso
 		String aux = (String)politipos.get(p.getPolytype());
 		
@@ -109,10 +114,10 @@ action code
 		if(t != null){
 			return t;
 		}else
-			throw new Exception("Undeclared identifier!");
+			throw new Exception("Undeclared identifier (" + id +")");
 	}
 	
-	private boolean putLocalID(String id){
+	private boolean putLocalID(String id) throws Exception{
 	
 		if (localST.get(id)==null){
 			Attrs aux =crearPolitipo("politipo");
@@ -121,7 +126,7 @@ action code
 			return true;
 		}
 		else{
-			return false;
+			throw new Exception("Multiple declaration of value "+ id);
 		}
 	}
 	
@@ -370,23 +375,37 @@ action code
 			}
 		}
 	}
-	
-
 :}
 
 parser code 
 {:
+	
 	public static void main(String args[]) throws Exception //le puse esto para que dejara de decir "null" cuando hay un pete y que tire un error mas copado
 	{
-		// try
-		// {
-			// System.out.print("MLOR> ");
-			new parser(new Yylex(System.in)).parse();
-		// }
-		// catch (Exception e)
-		// {
-			// System.err.println("Error: " + e.getMessage());
-		// }
+		InputStream in = null;
+		// imprimirPrompt();
+		System.out.print("MLOR> ");
+		try{
+			if (args.length==1){
+				in = new FileInputStream(args[0]);
+				// archivo = true;
+			}
+			else
+				in = System.in;
+		}
+		catch (FileNotFoundException e){
+			System.err.println("File not found");
+			System.exit(1);
+		}
+		try
+		{
+			new parser(new Yylex(in)).parse();
+		}
+		catch (Exception e)
+		{
+			System.err.println("Error: " + e.getMessage());
+		}
+		
 	}
 	
 	
@@ -412,10 +431,12 @@ Programa ::= 	{:
 
 Lista_sentencias ::= 	Lista_sentencias 
 						Sentencia 
+						{:imprimirPrompt();:}
 						PTOCOMA 
 						
 						| 
 						Sentencia 
+						{:imprimirPrompt();:}
 						PTOCOMA
 						
 						;
@@ -424,12 +445,12 @@ Sentencia ::= 	VAL
 				ID:id	
 				IGUAL 
 				Exp_Rel:exp 
-				{:  
-					
+				{:
 					st.put(id.getLexeme(),exp);
 					System.out.print("val "+id.getLexeme()+": ");
 					imprimirTipo(exp);
 					System.out.println("");
+					// System.out.print("MLOR> ");
 					charPolitipo = 'a'; //reinicio el contador de politipos
 				:}
 				| 
@@ -438,13 +459,20 @@ Sentencia ::= 	VAL
 					System.out.print("val it: ");
 					imprimirTipo(exp);
 					System.out.println("");
+					
 					charPolitipo = 'a'; //reinicio el contador de politipos
 				:}
 				| 
 				FUN 
-				{: localST = new Hashtable(); :}
+				{: 
+					localST = new Hashtable(); 
+					// System.out.print("MLOR> ");
+				:}
 				MatchingFunc
-				{: localST = null; :}
+				{: 
+					localST = null; 
+					// System.out.print("MLOR> ");
+				:}
 				;
 
 MatchingFunc ::= ID:f ID:param {:putLocalID(param.getLexeme());:} //pone el parametro con un politipo
@@ -520,13 +548,13 @@ Exp_Rel  	::= Exp_Rel:e1 OPREL Exp_cons:e2
 					Attrs t = tipoMasEspecifico(e1,e2);
 					if (t!=null){
 						t = tipoMasEspecifico(t,crearPolitipo("politipo con igualdad"));
-						if (t!=null){
+						if (t!=null && !t.getType().equals("fun")){
 							RESULT = new Attrs("boolean");
 						}else{
 							throw new Exception("Function does not admit equality.");
 						}
 					}else{
-						throw new Exception("Type clash.");
+						throw new Exception("Types are not compatibles.");
 					}
 				:}
 				| 
@@ -535,14 +563,14 @@ Exp_Rel  	::= Exp_Rel:e1 OPREL Exp_cons:e2
 					Attrs t = tipoMasEspecifico(e1,e2);
 					if (t!=null){
 						t = tipoMasEspecifico(t,crearPolitipo("politipo con igualdad"));
-						if (t!=null){
+						if (t!=null && !t.getType().equals("fun")){
 							RESULT= new Attrs("boolean");
 						}
 						else{
 							throw new Exception("Function does not admit equality.");
 						}
 					}else{
-						throw new Exception("Types are not compatibles in the equality");
+						throw new Exception("Types are not compatibles.");
 					}
 				:}
 				|
@@ -711,15 +739,10 @@ Exp_fun  	::= Exp_fun:f Exp_atom:atom
 				{:
 					Attrs aux = tipoMasEspecifico(f,new Attrs("fun",atom,crearPolitipo("politipo")));
 					if (aux!=null){
-						// if (tipoMasEspecifico(f.getDomain(), atom)!=null){
-						// hay que checkear para cambiar el tipo de atom _O_ las variables de f!
-							// RESULT = f.getRange();
-
-							// throw new Exception("Invalid parameter type!");
-							RESULT = aux.getRange();
+						RESULT = aux.getRange();
 					}
 					else{
-						throw new Exception("Not a valid function!");
+						throw new Exception("Not a valid function.");
 					}
 				:}
 				| 
