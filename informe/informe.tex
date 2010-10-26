@@ -3,22 +3,23 @@
 \usepackage[latin1]{inputenc}
 \usepackage{fullpage}
 \usepackage{listings}
-\usepackage{fancyvrb}
+\usepackage{gmverb}
 \usepackage[colorlinks=true,urlcolor=black,linkcolor=black]{hyperref}%
+\usepackage{listings}
 
 \setlength{\parskip}{1ex plus 0.5ex minus 0.2ex}
 
 \lstset{language=,keywordstyle=\ttfamily,stringstyle=\ttfamily}
 \lstset{breaklines}
 
-title{Compiladores e Intérpretes\\Informe del Segundo Proyecto
+\title{Compiladores e Intérpretes\\Informe del Segundo Proyecto}
 
 \author{Diego Marcovecchio (LU: 83815)\and Leonardo Molas (LU: 82498)}
 
 \date{26 de Octubre de 2010}
 
 \begin{document}
-	
+\lstset{frame=single}	
 \maketitle
 		
 \tableofcontents
@@ -28,28 +29,86 @@ title{Compiladores e Intérpretes\\Informe del Segundo Proyecto
 
 Este proyecto consiste en la implementación de un intérprete de un subconjunto del lenguaje funcional ML, que devolverá como salida el tipo de la expresión ingresada. Para esto se utilizaron las herramientas automáticas (JLex y CUP), aplicadas en el entorno del lenguaje de programación Java, que se encargan de generar un parser ascendente que reconoce las cadenas ingresadas y aplica las reglas semánticas convenientemente definidas.
 
+\section*{Archivos entregados}
+
+
 \chapter{Modo de uso}
-\$ \emphasize{java -jar mlinterpreter} [inputFile],
+\$ \emph{java -jar MLOR} [inputFile],
 
-donde \emphasize{inputFile} es un archivo con código ml que puede ingresarse opcionalmente. Si efectivamente se especifica un archivo, su contenido será mostrado por pantalla, y para cada una de las expresiones que contenga, el intérprete mostrará el tipo como la cátedra solicitó. En caso de que \emphasize{no} se especifique ningún archivo, el intérprete leerá instrucciones por pantalla, y mostrará el tipo de cada expresión leída.
+donde \emph{inputFile} es un archivo con código ml que puede ingresarse opcionalmente.  Si bien el programa no fue pensado específicamente para ser utilizado con archivos de entrada, se incluyó la opción para facilitar la corrección del intérprete por parte de la cátedra. Si efectivamente se especifica un archivo, para cada una de las expresiones que contenga, el intérprete mostrará el tipo como la cátedra solicitó. En caso de que \emph{no} se especifique ningún archivo, el intérprete mostrará un prompt para leer expresiones y funciones por pantalla, y mostrará el tipo de cada una de ellas. MLOR está pensado para ser utilizado con el prompt, por lo que al ingresar los casos de prueba directamente desde un archivo el formato de salida puede no ser el ideal.
 
-Para realizar una asignación se utiliza val \emphasize{X} = \emphasize{Y};, siendo \emphasize{X} el nombre de la variable que recibirá el resultado, e \emphasize{Y} la expresión que se asignará a \emphasize{X}. En caso de que únicamente se ingrese una expresión, ésta se ligará por defecto a la variable \emphasize{it}.
+Para realizar una asignación se utiliza val \emph{X} = \emph{Y};, siendo \emph{X} el nombre de la variable que recibirá el resultado, e \emph{Y} la expresión que se asignará a \emph{X}. En caso de que únicamente se ingrese una expresión, ésta se ligará por defecto a la variable \emph{it}.
+
+Ejemplos:
+\begin{lstlisting}[frame=single]
+MLOR> val x = 5;
+\end{lstlisting}
+En este caso, el valor entero 5 se liga a la variable global \emph{x}.
+
+
+\begin{lstlisting}
+MLOR> 11.11
+\end{lstlisting}
+En este caso, el string mostrado se liga implícitamente a la variable glogal \emph{it}.
+
+Para declarar una función, se ingresa el prefijo \emph{fun} en el intérprete seguido de los parámetros correspondientes y su expresión:
+
+\begin{lstlisting}
+MLOR> fun f x = x + 5;
+val f: int -> int = fn;
+MLOR> fun g x y = (f x > 10) orelse (x>y);
+val g: int -> int -> boolean = fn;
+\end{lstlisting}
+Se declaran dos funciones: \emph{f}, con parámetro \emph{x}, y \emph{g}, con parámetros \emph{x} e \emph{y}, que a su vez utiliza la función f.
+
+Tanto las variables globales como los identificadores de las funciones son recordados internamente en el parser en una tabla de símbolos (implementada con una tabla hash de Java). En dicha tabla se mantiene como llave el identificador, y la entrada de la tabla contiene un objeto indicando el tipo del identificador, y una lista de identificadores relacionados. Este objeto es apuntado por todos los identificadores de la lista, y se utiliza para el reconocimiento de politipos relacionados (como se mostrará en ejemplos más adelante, en la batería de tests).
+
 \section{Requerimientos}
 
-Dada la tecnología utilizada para realizar el intérprete, será necesario contar con la máquina virtual de Java (oficialmente fue probado para la versión 1.6) para poder correr el archivo ejecutable \emphasize{mlinterpreter}.
+Dada la tecnología utilizada para realizar el intérprete, será necesario contar con la máquina virtual de Java (oficialmente fue probado para la versión 1.6) para poder correr el archivo ejecutable \emph{mlinterpreter}.
 
 \section{Formato de salida}
 
-El formato de salida utilizado es igual al del lenguaje original ML: todas las funciones poseen un dominio y un rango, que se representan mediante la notaciónDominio -> Rango. Si dicha descripción está dada para una función llamada \emphasize{f}, entonces la salida mostrada por pantalla será:
+El formato de salida utilizado es igual al del lenguaje original ML: todas las expresiones poseen un tipo determinado, y todas las funciones poseen un dominio y un rango, que se representan mediante la notación Dominio -> Rango. Las expresiones ingresadas en el intérprete y pueden ser de tipo \emph{int}, \emph{real}, \emph{boolean}, \emph{string}, \emph{list} (que a su vez tiene un tipo asociado) y \emph{tuple} (que tiene un tipo asociado por cada uno de sus elementos). En el caso particular de las funciones, se consideran dos tipos especiales además de los mencionados: el politipo, y el politipo con igualdad. Dado que puede haber muchas instancias de politipos diferentes, los primeros se notan con un apóstrofe seguido del identificador del politipo, mientras que los segundos son precedidos por \emph{dos} apóstrofes.
 
-val f: Dominio -> Rango = fn;
 
-Las expresiones ingresadas en el intérprete y dentro de las funciones pueden ser de tipo \emphasize{int}, \emphasize{real}, \emphasize{bool} (booleano), \emphasize{string}, \emphasize{list} (que a su vez tiene un tipo asociado) y \emphasize{tuple} (que tiene un tipo asociado por cada uno de sus elementos).
+\begin{lstlisting}
+MLOR> 5;
+val it: int
+\end{lstlisting}
+Ejemplo de una expresión entera ligada implícitamente a \emph{it}.
+
+
+\begin{lstlisting}
+MLOR> val x = 5;
+val x: int;
+\end{lstlisting}
+La misma expresión entera, ligada explícitamente a \emph{x}.
+
+
+\begin{lstlisting}
+MLOR> val y = (1,2.0);
+val y: (int * real);
+\end{lstlisting}
+Una tupla de tipo (int * real) ligada explícitamente a \emph{y}.
+
+
+\begin{lstlisting}
+MLOR> fun f x = 5;
+val f: 'a -> int = fn;
+\end{lstlisting}
+Una función f que recibe un parámetro de cualquier tipo y  devuelve el número entero 5.
+
+\begin{lstlisting}
+MLOR> fun g x y = x=y;
+val f: ''a -> ''a -> boolean = fn;
+\end{lstlisting}
+Una función g que recibe dos parámetros de cualquier tipo \emph{que soporte igualdad}, los compara, e indica si son iguales o no.
 
 \chapter{Lenguaje}
 \section{Alfabeto de entrada}
 
-La gramática original fue ligeramente modificada para sacar algunas ambiguedades (por ejemplo, el hecho de que una derivación de una tupla de un único elemento y una expresión parentizada podían resultar iguales). Además, los operadores de las expresiones fueron separados utilizando las reglas de precedencia definidas en ML (y mencionadas adecuadamente en el enunciado entregado para la realización del intérprete). La gramática resultante, utilizada por CUP para la generación del parser es:
+La gramática original fue ligeramente modificada para eliminar algunas ambiguedades (por ejemplo, el hecho de que una derivación de una tupla de un único elemento y una expresión parentizada podían resultar iguales). Además, los operadores de las expresiones fueron separados utilizando las reglas de precedencia definidas en ML (y mencionadas adecuadamente en el enunciado entregado para la realización del intérprete). La gramática resultante, utilizada por CUP para la generación del parser, es:
 
 \begin{verbatim}
 
@@ -96,8 +155,8 @@ INDICAR ERRORES DETECTADOS.
 
 \chapter{Analizador léxico}
 \section{Palabras reservadas}
-El analizador léxico mantiene algunas palabras reservadas que no puede ser redefinidas por el usuario para nombrar una función o un valor; dichas palabras son los operadores lógicos \emphasize{orelse} y \emphasize{andalso}, los operadores aritméticos \emphasize{div} y \emphasize{mod}, el operador unario \emphasize{not}, el indicador de lista vacía \emphasize{nil}, el prefijo de las funciones \emphasize{fun}, y el de los valores, \emphasize{val}.
+El analizador léxico mantiene algunas palabras reservadas que no puede ser redefinidas por el usuario para nombrar una función o un valor; dichas palabras son los operadores lógicos \emph{orelse} y \emph{andalso}, los operadores aritméticos \emph{div} y \emph{mod}, el operador unario \emph{not}, el indicador de lista vacía \emph{nil}, el prefijo de las funciones \emph{fun}, y el de los valores, \emph{val}.
 
-Nótese que \emphasize{true} y \emphasize{false} no son palabras reservadas, sino variables booleanas insertadas por defecto en la tabla de símbolos, por lo que podrían redefinirse al valor que el usuario del intérprete desee.
+Nótese que \emph{true} y \emph{false} no son palabras reservadas, sino variables booleanas insertadas por defecto en la tabla de símbolos, por lo que podrían redefinirse al valor que el usuario del intérprete desee.
 
 \end{document}
