@@ -32,8 +32,8 @@ Este proyecto consiste en la implementación de un intérprete de un subconjunto d
 \section*{Archivos entregados}
 El proyecto está estructurado en tres carpetas:
 \begin{itemize}
-	\item /bin: incluye un jar ejecutable con el intérprete, y diversos archivos de test.
-	\item /doc: incluye el pdf con la documentación del proyecto.
+	\item /Casos de Test: incluye diversos archivos de test (válidos, inválidos, y con bugs).
+	\item /doc: incluye los pdf con la documentación del proyecto.
 	\item /src: incluye todos los archivos necesarios para compilar el proyecto:
 		\begin{itemize}
 			\item /JLex: carpeta que contiene todos los archivos propios de la herramienta JLex.
@@ -47,7 +47,7 @@ El proyecto está estructurado en tres carpetas:
 \end{itemize}
 
 \chapter{Modo de uso}
-\$ java -jar MLOR \emph{[inputFile]},
+\$ java MLOR \emph{[inputFile]},
 
 donde \emph{inputFile} es un archivo con código ml que puede ingresarse opcionalmente.  Si bien el programa no fue pensado específicamente para ser utilizado con archivos de entrada, se incluyó la opción para facilitar la corrección del intérprete por parte de la cátedra. Si efectivamente se especifica un archivo, para cada una de las expresiones que contenga, el intérprete mostrará el tipo como la cátedra solicitó. En caso de que {\bf no} se especifique ningún archivo, el intérprete mostrará un prompt para leer expresiones y funciones por pantalla, y mostrará el tipo de cada una de ellas. MLOR está pensado para ser utilizado con el prompt, por lo que al ingresar los casos de prueba directamente desde un archivo el formato de salida puede no ser el ideal.
 
@@ -65,7 +65,7 @@ En este caso, el valor entero 5 se liga a la variable global \emph{x}.
 MLOR> 11.11
 val it: real;
 \end{lstlisting}
-En este caso, el real mostrado se liga implícitamente a la variable glogal \emph{it}.
+En este caso, el real mostrado se liga implícitamente a la variable global \emph{it}.
 
 Para declarar una función, se ingresa el prefijo \emph{fun} en el intérprete seguido de los parámetros correspondientes y su expresión:
 
@@ -253,10 +253,104 @@ MLOR posee un manejo de errores básico en la interpretación de código; los tipos
 	MLOR> val x = ~"string";
 	Error: ~ operator can only be applied to integer and real values.
 	\end{lstlisting}
+	\item \textbf{List of different types:} aparece cuando se construye una lista que tiene al menos dos tipos diferentes de elementos.
+	\begin{lstlisting}
+	MLOR> val x = ["a", 3];
+	Error: The list has elements of different types.
+	\end{lstlisting}
+	\item \textbf{Otros:} errores inesperados para el parser, como por ejemplo, declarar una función sin parámetros:
+	\begin{lstlisting}
+	MLOR> fun f = 1;
+	Syntax error
+	Couldn't repair and continue parse
+	Error: Can't recover from previous error(s)
+	\end{lstlisting}
 \end{itemize}
 
-\section{}
+\section{Alcance semántico del parser}
+MLOR provee el reconocimiento de diversos tipos de sentencias y combinaciones de constructores; se detallarán en esta sección los casos y combinaciones más importantes; se adjuntan además en la carpeta \texttt{/bin} diversos casos de testing para probar su funcionamiento;
 
+Por empezar, MLOR permite la ligadura explícita del resultado de sentencias a variables utilizando el prefijo \emph{val}. En caso de no especificar una variable destino, el resultado de la sentencia ingresada será ligado implícitamente a la variable global \emph{it}. Dado que se utiliza una tabla de símbolos para recordar los atributos de cada variable, y dicha tabla persiste durante la ejecución del parser, las variables podrán ser utilizadas en sucesivas sentencias.
+
+\begin{lstlisting}
+MLOR> "Hello world!";
+val it: string
+MLOR> val myString = it;
+val myString: string
+\end{lstlisting}
+
+MLOR también permite ingresar listas de cualquier tipo básico:
+
+\begin{lstlisting}
+MLOR> val myStringList = ["Hello", "World!"];
+val myStringList: string list
+MLOR> val myIntList = [4, 8, 15, 16, 23, 42];
+val myIntList: int list
+\end{lstlisting}
+
+Tuplas de cualquier tipo:
+
+\begin{lstlisting}
+MLOR> val myTuple = (1, 2.0, "Three", [4]);
+val myTuple: (int * real * string * int list)
+\end{lstlisting}
+
+Y combinaciones de todas ellas:
+
+\begin{lstlisting}
+MLOR> val myComplicatedList = [(1, 1.0, "First item on the list", [1]), (2, 2.0, "Second item", [2]), (3, 3.33, "Yet another item", [33])];
+val myComplicatedList: (int * real * string * int list) list
+MLOR> val aHardTuple = ([1.5, 2.0, 3.0], "Yepe, it seems hard.", 17, 2035);
+val aHardTuple: (real list * string * int * int)
+\end{lstlisting}
+
+Además de la ligadura de variables, MLOR permite declarar funciones, que deberán poseer un identificador y al menos un parámetro:
+
+	\begin{lstlisting}
+	MLOR> fun f x = 5;
+	val f: 'a -> int = fn;
+	\end{lstlisting}
+	
+Las funciones también serán recordadas en la tabla de símbolos, por lo que podrán ser utilizadas posteriormente en otras funciones y expresiones:
+	
+	\begin{lstlisting}
+	MLOR> val g = f 3;
+	val g: int
+	\end{lstlisting}
+	
+MLOR cambia el tipo dinámicamente y liga las variables correspondientes en cualquier tipo de expresión; para las operaciones aritméticas, el valor por defecto es entero:
+
+	\begin{lstlisting}
+	MLOR> fun defaultIntAddition x y = x + y;
+	val defaultIntAddition: int -> int -> int = fn;
+	\end{lstlisting}
+
+Sin embargo, en caso de ser necesario, y siempre y cuando esté permitido por ML, las variables pueden cambiar de tipo:
+	
+	\begin{lstlisting}
+	MLOR> fun actualRealAddition x y = x + y + 0.0;
+	val actualRealAddition: real -> real -> real = fn;
+	\end{lstlisting}
+	
+Este cambio de tipo (válido, y permitido por ML) puede ocurrir con cualquier tipo de expresiones:
+
+	\begin{lstlisting}
+	MLOR> fun tupleFunction (x,y) = (x > (y*13.37));
+	val tupleFunction: (real * real) -> boolean = fn;
+	\end{lstlisting}
+	
+Y en cualquier tipo de funciones:
+
+	\begin{lstlisting}
+	MLOR> fun f x y z = (x 3.0, z y [2],y nil);
+	val f: (real -> 'a) -> ('b list -> 'c) -> (('b list -> 'c) -> int list -> 'd) -> ('a * 'd * 'c) = fn;	
+	MLOR> fun productoCartesiano x y = ((x,x), (x,y), (y,x), (y,y));
+	val productoCartesiano: 'a -> 'b -> (('a * 'a) * ('a * 'b) * ('b * 'a) * ('b * 'b)) = fn;
+	MLOR> fun productoParcial unElem = productoCartesiano unElem;
+	val productoParcial: 'a -> 'b -> (('a * 'a) * ('a * 'b) * ('b * 'a) * ('b * 'b)) = fn;	
+	\end{lstlisting}
+	
+	
 \chapter{Definición Dirigida por la Sintáxis}
 La Definición Dirigida por la Sintáxis se encuentra en el archivo ``dds.pdf''. En ella se encuentra un conjunto de reglas semánticas similares a las utilizadas en el código fuente del intérprete, pero sin los detalles de hilado fino de la implementación para hacerla más legible.
 
@@ -286,6 +380,197 @@ Para las listas, el prefijo utilizado es ``['', y para las tuplas ``(i)'', donde
 	\item \textbf{esTipoSimple}: indica si el atributo pasado por parámetro es un \textit{string}, un número real o entero, o un valor booleano.
 \end{itemize}
 
+
+\chapter{Batería de tests}
+Los tests fueron divididos en tres partes: válidos, inválidos, y los que presentan bugs que no pudieron arreglarse por cuestiones de tiempo.
+
+\section{Tests válidos}
+Todos los casos de testeo válidos fueron incluidos en el archivo \emph{casosDeTest.ml}, dado que gran parte de las expresiones incluidas puede evaluarse de manera independiente, y por sobre todo, el resultado de cada expresión es mostrado por pantalla. La dificultad de las sentencias va a aumentando poco a poco, lo que permite analizar con mayor facilidad el comportamiento de MLOR. A continuación, mostramos la ejecución continua de cada una de las sentencias del archivo de tests, y el resultado de cada una:
+
+\begin{lstlisting}
+	MLOR> 2;
+	val it: int
+	
+	MLOR> 3.4;
+	val it: real
+	
+	MLOR> "asdasdasdasd";
+	val it: string
+	
+	MLOR> [1];
+	val it: int list
+	
+	MLOR> [1                     ];
+	val it: int list
+	
+	MLOR> false;
+	val it: boolean
+	
+	MLOR> nil;
+	val it: 'a list
+	
+	MLOR> (true,3);
+	val it: (boolean * int)
+	
+	MLOR> true::nil;
+	val it: boolean list
+	
+	MLOR> 2.0 / 3.0;
+	val it: real
+	
+	MLOR> 4+3*6;
+	val it: int
+	
+	MLOR> false orelse true;
+	val it: boolean
+	
+	MLOR> false andalso true;
+	val it: boolean
+	
+	MLOR> (3+4) div (4 div 2);
+	val it: int
+	
+	MLOR> "Hello" ^ "world!";
+	val it: string
+	
+	MLOR> not (4 = 3);
+	val it: boolean
+	
+	MLOR> val a = 1;	
+	val a: int
+	
+	MLOR> a;
+	val it: int
+	
+	MLOR> a + it + 1;
+	val it: int
+	
+	MLOR> val a = false orelse true;
+	val a: boolean
+	
+	MLOR> val a = false orelse not true;
+	val a: boolean
+	
+	MLOR> val a = false orelse ("asd" = "dasd");
+	val a: boolean
+	
+	MLOR> val a = false andalso a;
+	val a: boolean
+	
+	MLOR> val a = [a];
+	val a: boolean list
+	
+	MLOR> val a = 3::[4,5,6];
+	val a: int list
+	
+	MLOR> val b = 3 + 2 div 5 * 2 - 4 mod 3 + 4;
+	val b: int
+	
+	MLOR> fun f x y = x<>y;
+	val f: ''a -> ''a -> boolean = fn;
+	
+	MLOR> fun f x = (false,2.0*3.6/x);
+	val f: real -> (boolean * real) = fn;
+	
+	MLOR> fun f x = (x,false,2.0*3.6/x,x);
+	val f: real -> (real * boolean * real * real) = fn;
+	
+	MLOR> fun f x y = (1,y x,x+1);
+	val f: int -> (int -> 'a) -> (int * 'a * int) = fn;
+	
+	MLOR> fun f x y = (1,x,x+1);
+	val f: int -> 'a -> (int * int * int) = fn;
+	
+	MLOR> fun f x y = (1,y x,x+1,y, [y]);
+	val f: int -> (int -> 'a) -> (int * 'a * int * (int -> 'a) * (int -> 'a) list) = fn;
+	
+	MLOR> fun f x y = (1,y x,x+1,y, [x]);
+	val f: int -> (int -> 'a) -> (int * 'a * int * (int -> 'a) * int list) = fn;
+	
+	MLOR> fun f x y = x [y] (1,y);
+	val f: ('a list -> (int * 'a) -> 'b) -> 'a -> 'b = fn;
+	
+	MLOR> fun g x y = 1;
+	val g: 'a -> 'b -> int = fn;
+	
+	MLOR> f g;
+	val it: 'a -> 'b
+	
+	MLOR> fun f (x,y) = x+y+1;
+	val f: (int * int) -> int = fn;
+	
+	MLOR> fun f (x,y) = x*y+x*4.0;
+	val f: (real * real) -> real = fn;
+	
+	MLOR> fun f (x,y) = x*~y;
+	val f: (int * int) -> int = fn;
+	
+	MLOR> fun f x y z = (x 3.0, z y [2],y nil);
+	val f: (real -> 'a) -> ('b list -> 'c) -> (('b list -> 'c) -> int list -> 'd) -> ('a * 'd * 'c) = fn;
+	
+	MLOR> fun f x = (1,([(x,[[x,1]],x)],x));
+	val f: int -> (int * ((int * int list list * int) list * int)) = fn;
+	
+	MLOR> fun momia mo mi a = mo [(mi,"tutankamon"),(a 1 2 3 "mumrah" ^ "larala", "imhotep")] 11.11 + 2012;
+	val momia: ((string * string) list -> real -> int) -> string -> (int -> int -> int -> string -> string) -> int = fn;
+	
+	MLOR> .
+	Succesfully parsed! Press CTRL+C to exit.
+\end{lstlisting}
+
+
+\section{Tests inválidos}
+Los casos de testeo en los que el intérprete muestra un error fueron separados en diferentes archivos para que puedan ser probados uno a uno; si bien no se incluyen los 54 en este documento, se mostrarán unos pocos ejemplos del estilo de fallos encontrados por el intérprete, que representan a la gama de errores descriptos anteriormente:
+
+\begin{lstlisting}
+MLOR> !;.
+Error: Lexical Error: ! at line 1
+\end{lstlisting}
+
+\begin{lstlisting}
+MLOR> 5 / 7;
+Error: Real expected.
+\end{lstlisting}
+
+\begin{lstlisting}
+MLOR> val s = "S1" + "S2";
+Error: Integer or real expected.
+\end{lstlisting}
+
+\begin{lstlisting}
+MLOR> true andalso;
+Syntax error
+\end{lstlisting}
+
+\begin{lstlisting}
+MLOR> a;
+Error: Undeclared identifier (a)
+\end{lstlisting}
+
+\begin{lstlisting}
+MLOR> fun momia mo mi a = mo [(mi,"tutankamon"),(a 1 2 3 "mumrah", a 2 3)] 11.11 + 2012;
+Error: The list has elements of different types.
+\end{lstlisting}
+
+\section{Known bugs}
+Existen casos en los que el intérprete no se comporta exactamente como lo haría el de ML original; éste tipo de caso no pudo ser controlado por falta de tiempo, y es reportado en esta sección:
+
+\begin{lstlisting}
+MLOR> fun f x = x [x];
+val f: ('a list -> 'b) -> 'b = fn;
+\end{lstlisting}
+En este caso, el intérprete original de ML indica un conflicto: "`Circular type results from unifying 'a and 'a list -> 'b"'. Sin embargo, en MLOR no realizamos detección de aplicaciones circulares en funciones, por lo que este caso da una respuesta errónea.
+
+Por otro lado, MLOR puede presentar algunos problemas en las aplicaciones parciales de funciones con parámetros politipo a los que se les instancia un tipo estructurado complejo. Por ejemplo:
+
+\begin{lstlisting}
+MLOR> fun h x y = (x,y);
+val h: 'a -> 'b -> ('a * 'b) = fn;
+MLOR> fun g x = h (x, [1,2,3,4]);
+val g: ('a * int list) -> 'b -> ('c * 'b) = fn;
+\end{lstlisting}
+
+El tipo de la función g debería ser: 'a -> 'b -> (('a * int list) * 'b) = fn
 
 
 \end{document}

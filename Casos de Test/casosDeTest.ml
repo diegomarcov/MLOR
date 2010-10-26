@@ -45,4 +45,5 @@ fun momia mo mi a = mo [(mi,"tutankamon"),(a 1 2 3 "mumrah" ^ "larala", "imhotep
 
 fun h x y = (x,y);
 fun j x = h (x, [1.0,2.0,3.0]);
+
 .
