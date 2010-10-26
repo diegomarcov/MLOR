@@ -425,7 +425,10 @@ Programa ::= 	{:
 					st.put("false",b);
 					
 				:} 
-				Lista_sentencias 	
+				Lista_sentencias 
+				{: 	
+					System.out.println("Succesfully parsed! Press CTRL+C to exit.");
+				:}
 				PUNTO	
 				;
 
@@ -597,10 +600,10 @@ Exp_add  	::=	Exp_add:e1 OPADD Exp_mul:e2
 						if (t!=null){
 							RESULT = t;
 						}else{
-							throw new Exception("Integer or real expected.");
+							throw new Exception("Integer or real expected.");//lo cambio... estaba en "Integer or real expected."
 						}
 					}else{
-						throw new Exception("Integer or real expected.");
+						throw new Exception("Incompatible types.");
 					}
 				:}
 				| 
@@ -648,7 +651,7 @@ Exp_mul  	::=	Exp_mul:e1 MUL Exp_un:e2
 							throw new Exception("Integer or real expected.");
 						}
 					}else{
-						throw new Exception("Integer or real expected.");
+						throw new Exception("Incompatible types.");
 					}
 				:}
 				| 
@@ -729,7 +732,7 @@ Exp_un   	::=	NOT Exp_fun:fun
 					if (t != null){
 						RESULT = t;
 					}else{
-						throw new Exception("Integer or real expected");
+						throw new Exception("~ operator can only be applied to integer and real values.");//lo cambie! era "Integer or real expected"
 					}
 				:}
 				| 

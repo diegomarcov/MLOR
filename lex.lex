@@ -51,4 +51,4 @@ COMMENT = #.*\n
 {ID}		{ return new Symbol(sym.ID, new Token(sym.ID,yytext(),yyline+1));}
 {COMMENT}	{ /* ignora comentarios. */ }
 {BLANCOS}	{ /* ignora espacios en blanco. */ }
-.			{ throw new Exception("Lexical Error: "+yytext()+" en línea "+(yyline+1)); }
+.			{ throw new Exception("Lexical Error: "+yytext()+" at line "+(yyline+1)); }

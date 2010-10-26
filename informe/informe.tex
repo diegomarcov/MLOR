@@ -130,7 +130,17 @@ Una función h que recibe dos parámetros de cualquier tipo \emph{(no necesariamen
 
 \chapter{Analizador léxico}
 \section{Tokens}
-El Analizador Léxico de MLOR es generado gracias a la utilización de la herramienta automática JLex. Dicho analizar reconoce los tokens especificados en la tabla \ref{tab:tokens}, y los pasa \emph{on demand}
+El Analizador Léxico de MLOR es generado gracias a la utilización de la herramienta automática JLex. Dicho analizador reconoce los tokens especificados en la tabla \ref{tab:tokens}, y los pasa \emph{on demand} al parser.
+
+\section{Palabras reservadas}
+El analizador léxico de MLOR mantiene algunas palabras reservadas que no puede ser redefinidas por el usuario para nombrar una función o un valor; dichas palabras son los operadores lógicos \emph{orelse} y \emph{andalso}, los operadores aritméticos \emph{div} y \emph{mod}, el operador unario \emph{not}, el indicador de lista vacía \emph{nil}, el prefijo de las funciones \emph{fun}, y el de los valores, \emph{val}.
+
+Nótese que \emph{true} y \emph{false} no son palabras reservadas, sino variables booleanas insertadas por defecto en la tabla de símbolos, por lo que podrían redefinirse al valor que el usuario del intérprete desee.
+
+Es interesante destacar que, a diferencia del lenguaje original ML, el analizador léxico de MLOR {\bf no} es \emph{case-sensitive}. Si bien las expresiones regulares de las palabras reservadas mostradas en la tabla \ref{tab:tokens} están desarrolladas de manera exhaustiva, la propiedad para que el lexer no sea \emph{case-sensitive} es alcanzada gracias al setting \texttt{\%ignorecase} de la herramienta JLex.
+
+La expresión regular de la entrada de "`String"' en la tabla significa "`cualquier conjunto de caracteres sin considerar `` y el salto de línea \textbackslash n"', rodeado de comillas dobles.
+
 \begin{table}[H]
 
 \begin{tabular}{|l|l|}
@@ -169,13 +179,10 @@ ID		 							& {\ttfamily [a-z][a-z0-9]*} \\ \hline
 \caption{Tokens}
 \end{table}
 
-\section{Palabras reservadas}
-El analizador léxico de MLOR mantiene algunas palabras reservadas que no puede ser redefinidas por el usuario para nombrar una función o un valor; dichas palabras son los operadores lógicos \emph{orelse} y \emph{andalso}, los operadores aritméticos \emph{div} y \emph{mod}, el operador unario \emph{not}, el indicador de lista vacía \emph{nil}, el prefijo de las funciones \emph{fun}, y el de los valores, \emph{val}.
 
-Nótese que \emph{true} y \emph{false} no son palabras reservadas, sino variables booleanas insertadas por defecto en la tabla de símbolos, por lo que podrían redefinirse al valor que el usuario del intérprete desee.
+\chapter{Analizador Sintáctico y Semántico}
+Una vez superados los checkeos del Analizador Léxico, el control del parser pasa a estar a cargo del Analizador Sintáctico, que dado un grupo de tokens provistos por el Lexer se asegura de que éstos formen un grupo de sentencias coherentes, o reporta el error encontrado. De acuerdo a la regla de derivación utilizada, se aplican reglas semánticas para que la evaluación de cada una de las sentencias resulte en lo esperado. A continuación detallaremos qué es lo que espera recibir el Analizador Sintáctico, el tipo de errores reportados en caso de no encontrarlo, y el alcance en el reconocimiento semántico de las expresiones en el parser.
 
-
-\chapter{Lenguaje}
 \section{Alfabeto de entrada}
 
 La gramática original fue ligeramente modificada para eliminar algunas ambiguedades (por ejemplo, el hecho de que una derivación de una tupla de un único elemento y una expresión parentizada podían resultar iguales). Además, los operadores de las expresiones fueron separados utilizando las reglas de precedencia definidas en ML (y mencionadas adecuadamente en el enunciado entregado para la realización del intérprete). La gramática resultante, utilizada por CUP para la generación del parser, es:
@@ -218,42 +225,65 @@ La gramática original fue ligeramente modificada para eliminar algunas ambigueda
 
 <List2> 	::= <List2> COMA <Exp_Rel> | <Exp_Rel>
 \end{verbatim}
-
 \section{Errores detectados}
+MLOR posee un manejo de errores básico en la interpretación de código; los tipos de errores detectados son:
 
-INDICAR ERRORES DETECTADOS.
-
-\chapter{Analizador léxico}
-\section{Palabras reservadas}
-El analizador léxico mantiene algunas palabras reservadas que no puede ser redefinidas por el usuario para nombrar una función o un valor; dichas palabras son los operadores lógicos \emph{orelse} y \emph{andalso}, los operadores aritméticos \emph{div} y \emph{mod}, el operador unario \emph{not}, el indicador de lista vacía \emph{nil}, el prefijo de las funciones \emph{fun}, y el de los valores, \emph{val}.
-
-Nótese que \emph{true} y \emph{false} no son palabras reservadas, sino variables booleanas insertadas por defecto en la tabla de símbolos, por lo que podrían redefinirse al valor que el usuario del intérprete desee.
-
-\chapter{DDS}
-La Definición Dirigida por la Sintaxis se encuentra en el archivo ``dds.pdf''. En ella se encuentra una implementación análoga a la utilizada en el código fuente del intérprete.
-
-\section{Estructuras}
 \begin{itemize}
-	\item \textbf{\texttt{Attrs}}: El conjunto de atributos de los no terminales. Mantiene el tipo de la subexpresión computada, y el conjunto de identificadores, guardadas en una lista, que referencian a dicho tipo. Además, guarda todo lo necesario para los diferentes tipos (tipo de elemento para las listas, tipo de dominio y rango para las funciones, etc,).
-	\item \textbf{Tablas de símbolos}: Se utilizaron dos tablas de símbolos, implementados con \texttt{Hashtables}, con cadenas de caracteres que contienen el identificador como llave, y Attrs como contenido. La primer tabla es la global, que es utilizada en toda la ejecución. La segunda sólo vive durante la ejecución de funciones, y se utiliza como un tabla de símbolos local.
+	\item \textbf{Lexical Error:} ocurre cuando se intenta ingresar un caracter que no pertenece al lenguaje de entrada.
+		\begin{lstlisting}
+		MLOR> $;
+		Error: Lexical Error: $ at line 1
+		\end{lstlisting}
+	\item \textbf{Undeclared identifier:} se presenta al intentar evaluar el valor de una variable que no se encuentra ligada.
+		\begin{lstlisting}
+		MLOR> val x = y+2;
+		Error: Undeclared identifier (y)
+		\end{lstlisting}
+	\item \textbf{Incompatible types:} ocurre cuando se utilizan dos tipos \emph{diferentes} en operadores que esperan tipos específicos.
+		\begin{lstlisting}
+		MLOR> val x = 1 + 2.5;
+		Error: Incompatible types.
+		\end{lstlisting}
+	\item \textbf{Wrong argument type:} se presenta al utilizar tipos de argumentos inválidos con determinados operadores.
+	\begin{lstlisting}
+	MLOR> val x = "string1" + "string2";
+	Error: Integer or real expected.
+	\end{lstlisting}
+	\begin{lstlisting}
+	MLOR> val x = ~"string";
+	Error: ~ operator can only be applied to integer and real values.
+	\end{lstlisting}
+\end{itemize}
+
+\section{}
+
+\chapter{Definición Dirigida por la Sintáxis}
+La Definición Dirigida por la Sintáxis se encuentra en el archivo ``dds.pdf''. En ella se encuentra un conjunto de reglas semánticas similares a las utilizadas en el código fuente del intérprete, pero sin los detalles de hilado fino de la implementación para hacerla más legible.
+
+\section{Estructuras utilizadas}
+\begin{itemize}
+	\item \textbf{\texttt{Attrs}}: El conjunto de atributos de los no terminales. Mantiene el tipo de la subexpresión computada, y la lista de identificadores que referencian a dicho tipo guardados en un conjunto de \emph{related-ids} (implementado internamente a partir de un \texttt{HashSet}). Además, puede contener todos los datos necesarios para los diferentes tipos que puede tener una variable (tipo de elemento para las listas, tipo de dominio y rango para las funciones, etc).
+	\item \textbf{Tablas de símbolos}: Se utilizaron dos tablas de símbolos implementadas con \texttt{Hashtables}, con cadenas de caracteres que contienen el identificador como llave, y objetos de tipo Attrs como contenido. La primer tabla es la global, que es utilizada durante toda la ejecución. La segunda es creada cuando se parsean funciones, se utiliza como tabla de símbolos local, y es descartada posteriormente.
 \end{itemize}
 
 \subsection{Lista de identificadores}
 La lista de identificadores de la clase \texttt{Attrs} tiene una notación particular para los casos en las que una variable la apunta indirectamente.
 
-Por ejemplo, si una variable x es de tipo \texttt{('a -> 'b)}, el objeto \texttt{Attrs} 'a tendrá que saber que es apuntado indirectamente por x, así como también 'b. Para esto, en la lista de identificadores se agrega la variable seguida por un prefijo, que indica por quién está apuntado. En el caso de los dominios de una función, el prefijo es ``-'', mientras que para el rango es ``\textgreater'', por lo que en las listas iran ``-x'' y ``\textgreater x'' respectivamente. Esta información es utilizada luego para corregir las referencias cuando el tipo es cambiado.
+Por ejemplo, si una variable x es una función con dominio 'a y rango 'b (es decir, su tipo es \texttt{('a -> 'b)}), tanto el objeto \texttt{Attrs} 'a como el 'b deberán saber que están siendo apuntados indirectamente por x. Para esto, en la lista de identificadores se agrega la variable antecedida por un prefijo, que indica por quién está siendo apuntado el objeto. En el caso de los dominios de una función, el prefijo es ``-'', mientras que para el rango es ``\textgreater'', por lo que en las listas contendrán ``-x'' y ``\textgreater x'' respectivamente. Esta información es utilizada luego para corregir las referencias cuando el tipo es cambiado.
 
-Para las listas, se le agrega como prefijo ``['', y para las tuplas ``(i)'', donde \textit{i} es el índice de la referencia en la lista de tipos.
+Para las listas, el prefijo utilizado es ``['', y para las tuplas ``(i)'', donde \textit{i} es el índice de la referencia en la lista de tipos.
 
 \section{Métodos}
 \begin{itemize}
-	\item \textbf{tipoMasEspecifico}: Devuelve el tipo más específico entre los dos parámetros, si es que son compatibles. En el caso de los tipos estructurados (listas, tuplas y funciones), se llama recursivamente. Este método también corrige las referencias de las variables, directa e indirectamente. 
+	\item \textbf{tipoMasEspecifico}: Devuelve el tipo más específico entre los dos parámetros, si es que son compatibles. En el caso de las listas, tuplas y funciones, es utilizado recursivamente para comparar que ambos parámetros sean del mismo tipo estructurado, y que los tipos base de éstos también coincidan. Este método también corrige las referencias de las variables en la tabla de símbolos, directa e indirectamente.
 	
-	Los politipos pueden cambiar de tipo, por lo que se selecciona como tipo más específico el otro, y todos apuntan al segundo. En el caso de que los dos sean politipos, seguirán siéndolo, pero las variables que los apuntaban ahora apuntaran al mismo objeto.
+	En el caso de que sólo uno de los parámetros sea un politipo, se selecciona como tipo más específico el otro, y las entradas de toda la lista de \emph{related-ids} pasan a apuntar al objeto Attrs del tipo más específico en la tabla de símbolos. En el caso de que ambos sean politipos, continúan siéndolo, pero las variables que los apuntaban ahora apuntarán al mismo objeto, y las listas de \emph{related-ids} serán fusionadas.
+	
+	Por último, si los tipos no son compatibles, el procedimiento frena la corrección de los tipos en la tabla de símbolos y devuelve \texttt{null}.
 	\item \textbf{esTipoTextOrNum}: Devuelve si el tipo pasado es un \textit{string}, o un número.
-	\item \textbf{crearPolitipo}: Crea un objeto \texttt{Attrs} del tipo que se le pasa por parámetro, utilizando también un entero contador que lo representa unívocamente.
-	\item \textbf{obtenerTipo}: Busca primero en la tabla de símbolos local (si existe) y luego en la global el tipo del identificador pasado por parámetro.
-	\item \textbf{esTipoSimple}: Devuelve si el tipo pasado es un \textit{string}, un número, o un \textsl{boolean}.
+	\item \textbf{crearPolitipo}: Crea un objeto \texttt{Attrs} del tipo que se le pasa por parámetro, utilizando también un entero contador que lo representa unívocamente. Esta representación es la que permite diferenciar los tipos de politipo (por ejemplo, 'a de 'b).
+	\item \textbf{obtenerTipo}: Busca primero en la tabla de símbolos local (si existe) y luego en la global el tipo del identificador pasado por parámetro. En caso de que el identificador no esté declarado, devuelve \texttt{null}.
+	\item \textbf{esTipoSimple}: indica si el atributo pasado por parámetro es un \textit{string}, un número real o entero, o un valor booleano.
 \end{itemize}
 
 
