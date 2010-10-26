@@ -56,12 +56,14 @@ Para realizar una asignación se utiliza val \emph{X} = \emph{Y};, siendo \emph{X
 Ejemplos:
 \begin{lstlisting}[frame=single]
 MLOR> val x = 5;
+val x: int;
 \end{lstlisting}
 En este caso, el valor entero 5 se liga a la variable global \emph{x}.
 
 
 \begin{lstlisting}
 MLOR> 11.11
+val it: real;
 \end{lstlisting}
 En este caso, el real mostrado se liga implícitamente a la variable glogal \emph{it}.
 
@@ -117,7 +119,13 @@ Una función f que recibe un parámetro de cualquier tipo y  devuelve el número en
 MLOR> fun g x y = x=y;
 val f: ''a -> ''a -> boolean = fn;
 \end{lstlisting}
-Una función g que recibe dos parámetros de cualquier tipo \emph{que soporte igualdad}, los compara, e indica si son iguales o no.
+Una función g que recibe dos parámetros del mismo tipo \emph{que soporte igualdad}, los compara, e indica si son iguales o no.
+
+\begin{lstlisting}
+MLOR> fun h x y = (x,y);
+val h: 'a -> 'b -> ('a * 'b) = fn;
+\end{lstlisting}
+Una función h que recibe dos parámetros de cualquier tipo \emph{(no necesariamente igual)}, y devuelve una tupla con estos dos elementos.
 
 \chapter{Lenguaje}
 \section{Alfabeto de entrada}
@@ -140,11 +148,11 @@ La gramática original fue ligeramente modificada para eliminar algunas ambigueda
 
 <TuplePattern2> ::= <TuplePattern2> COMA ID  | ID
 
-<Exp_Rel>  	::= 	<Exp_Rel> MENOR <Exp_cons> | <Exp_Rel> MAYOR <Exp_cons> | <Exp_Rel> MENORIGUAL <Exp_cons> | <Exp_Rel> MAYORIGUAL <Exp_cons> | <Exp_Rel> DISTINTO <Exp_cons> | <Exp_Rel> IGUAL <Exp_cons> | <Exp_cons>
+<Exp_Rel>  	::= 	<Exp_Rel> OPREL <Exp_cons> | <Exp_Rel> DISTINTO <Exp_cons> | <Exp_Rel> IGUAL <Exp_cons> | <Exp_cons>
 
 <Exp_cons> 	::=	<Exp_add> CONS <Exp_cons>| <Exp_add>
 
-<Exp_add>  	::=	<Exp_add> SUMA <Exp_mul> | <Exp_add> RESTA <Exp_mul> | <Exp_add> ORELSE <Exp_mul> | <Exp_add> CONCAT <Exp_mul> | <Exp_mul>
+<Exp_add>  	::=	<Exp_add> OPADD <Exp_mul> | <Exp_add> ORELSE <Exp_mul> | <Exp_add> CONCAT <Exp_mul> | <Exp_mul>
 
 <Exp_mul>  	::=	<Exp_mul> MUL <Exp_un> | <Exp_mul> DIVREAL <Exp_un> | <Exp_mul> DIVINT <Exp_un> | <Exp_mul> MOD <Exp_un> | <Exp_mul> ANDALSO <Exp_un> | <Exp_un>
 
@@ -154,9 +162,9 @@ La gramática original fue ligeramente modificada para eliminar algunas ambigueda
 
 <Exp_atom>	::=	INT | REAL | STRING | ID | NIL | PARABRE <Exp_Rel> PARCIERRA | <Tuple> | <List>
 
-<Tuple> 	::= PARABRE <Exp_Rel>COMA <Tuple2> PARCIERRA
+<Tuple> 	::= PARABRE <Exp_Rel> COMA <Tuple2> PARCIERRA
 
-<Tuple2> 	::= <Tuple2>COMA <Exp_Rel> | <Exp_Rel>
+<Tuple2> 	::= <Tuple2> COMA <Exp_Rel> | <Exp_Rel>
 
 <List> 		::= CORABRE <List2> CORCIERRA
 
