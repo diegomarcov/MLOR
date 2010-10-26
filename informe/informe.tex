@@ -127,6 +127,54 @@ val h: 'a -> 'b -> ('a * 'b) = fn;
 \end{lstlisting}
 Una función h que recibe dos parámetros de cualquier tipo \emph{(no necesariamente igual)}, y devuelve una tupla con estos dos elementos.
 
+
+\chapter{Analizador léxico}
+\section{Tokens}
+El Analizador Léxico reconoce los tokens especificados en la tabla \ref{tab:tokens}.
+\begin{table}[H]
+
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Token}			& \textbf{Expresión Regular} \\ \hline
+PUNTO			 					& {\ttfamily .} \\ \hline
+PTOCOMA							& {\ttfamily ;} \\ \hline
+IGUAL								& {\ttfamily =} \\ \hline
+COMA      					& {\ttfamily ,} \\ \hline
+DISTINTO	 					& {\ttfamily \textless \textgreater \ } \\ \hline
+OPREL			 					& {\ttfamily <|>|<=|>=} \\ \hline
+CONS			 					& {\ttfamily ::} \\ \hline
+OPADD 							& {\ttfamily +|-} \\ \hline
+ORELSE						 	& {\ttfamily (o|O)(r|R)(e|E)(l|L)(s|S)(e|E)} \\ \hline
+CONCAT 							& {\ttfamily \^ \ } \\ \hline
+MUL				 					& {\ttfamily *} \\ \hline
+DIVREAL						 	& {\ttfamily /} \\ \hline
+DIVINT							& {\ttfamily (d|D)(i|I)(v|V) } \\ \hline
+MOD								 	& {\ttfamily (m|M)(o|O)(d|D)} \\ \hline
+ANDALSO						 	& {\ttfamily (a|A)(n|N)(d|D)(a|A)(l|L)(s|S)(o|O)} \\ \hline
+NOT						 			& {\ttfamily (n|N)(o|O)(t|T)} \\ \hline
+MINUS					 			& {\ttfamily \~ \ } \\ \hline
+PARABRE 						& {\ttfamily (} \\ \hline
+PARCIERRA						& {\ttfamily )} \\ \hline
+CORABRE							& {\ttfamily [} \\ \hline
+CORCIERRA						& {\ttfamily ]} \\ \hline
+NIL			 						& {\ttfamily (n|N)(i|I)(l|L)} \\ \hline
+FUN				 					& {\ttfamily (f|F)(u|U)(n|N)} \\ \hline
+VAL		 							& {\ttfamily (v|V)(a|A)(l|L)} \\ \hline
+REAL 								& {\ttfamily [0-9]+.[0-9]+} \\ \hline
+INT 								& {\ttfamily [0-9]+} \\ \hline
+STRING							& {\ttfamily ``[\^\ `` \^\ \textbackslash n]*'' } \\ \hline
+ID		 							& {\ttfamily [a-z][a-z0-9]*} \\ \hline
+\end{tabular}
+\label{tab:tokens}
+\caption{Tokens}
+\end{table}
+
+\section{Palabras reservadas}
+El analizador léxico de MLOR mantiene algunas palabras reservadas que no puede ser redefinidas por el usuario para nombrar una función o un valor; dichas palabras son los operadores lógicos \emph{orelse} y \emph{andalso}, los operadores aritméticos \emph{div} y \emph{mod}, el operador unario \emph{not}, el indicador de lista vacía \emph{nil}, el prefijo de las funciones \emph{fun}, y el de los valores, \emph{val}.
+
+Nótese que \emph{true} y \emph{false} no son palabras reservadas, sino variables booleanas insertadas por defecto en la tabla de símbolos, por lo que podrían redefinirse al valor que el usuario del intérprete desee.
+
+
 \chapter{Lenguaje}
 \section{Alfabeto de entrada}
 
@@ -174,11 +222,5 @@ La gramática original fue ligeramente modificada para eliminar algunas ambigueda
 \section{Errores detectados}
 
 INDICAR ERRORES DETECTADOS.
-
-\chapter{Analizador léxico}
-\section{Palabras reservadas}
-El analizador léxico mantiene algunas palabras reservadas que no puede ser redefinidas por el usuario para nombrar una función o un valor; dichas palabras son los operadores lógicos \emph{orelse} y \emph{andalso}, los operadores aritméticos \emph{div} y \emph{mod}, el operador unario \emph{not}, el indicador de lista vacía \emph{nil}, el prefijo de las funciones \emph{fun}, y el de los valores, \emph{val}.
-
-Nótese que \emph{true} y \emph{false} no son palabras reservadas, sino variables booleanas insertadas por defecto en la tabla de símbolos, por lo que podrían redefinirse al valor que el usuario del intérprete desee.
 
 \end{document}
