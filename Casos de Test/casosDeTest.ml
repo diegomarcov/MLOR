@@ -41,8 +41,3 @@ fun f x y z = (x 3.0, z y [2],y nil);
 fun f x = (1,([(x,[[x,1]],x)],x));
 fun momia mo mi a = mo [(mi,"tutankamon"),(a 1 2 3 "mumrah" ^ "larala", "imhotep")] 11.11 + 2012;
 .
-
-
-fun h x y = (x,y);
-fun j x = h (x, [1.0,2.0,3.0]);
-.
