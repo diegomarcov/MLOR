@@ -27,15 +27,29 @@
 \chapter*{Introducción}
 \section*{Descripción}
 
-Este proyecto consiste en la implementación de un intérprete de un subconjunto del lenguaje funcional ML, que devolverá como salida el tipo de la expresión ingresada. Para esto se utilizaron las herramientas automáticas (JLex y CUP), aplicadas en el entorno del lenguaje de programación Java, que se encargan de generar un parser ascendente que reconoce las cadenas ingresadas y aplica las reglas semánticas convenientemente definidas.
+Este proyecto consiste en la implementación de un intérprete de un subconjunto del lenguaje funcional ML, que devolverá como salida el tipo de las expresiones ingresadas. Para esto se utilizaron las herramientas automáticas JLex y CUP aplicadas en el entorno del lenguaje de programación Java, que se encargan de generar un parser ascendente que reconoce las cadenas ingresadas y aplica las reglas semánticas convenientemente definidas.
 
 \section*{Archivos entregados}
-
+El proyecto está estructurado en tres carpetas:
+\begin{itemize}
+	\item /bin: incluye un jar ejecutable con el intérprete, y diversos archivos de test.
+	\item /doc: incluye el pdf con la documentación del proyecto.
+	\item /src: incluye todos los archivos necesarios para compilar el proyecto:
+		\begin{itemize}
+			\item /JLex: carpeta que contiene todos los archivos propios de la herramienta JLex.
+			\item /java\_cup: carpeta que contiene todos los archivos propios de la herramienta CUP.
+			\item Attrs.java: clase auxiliar definida para guardar los datos de los no-terminales en la gramática; a grandes rasgos, para cada no-terminal se recuerda el tipo de la expresión que sintetiza, y una lista de \emph{related-ids}; cada identificador que apunta a este objeto en la tabla de símbolos es indicado a su vez en esta lista, lo que permite, por ejemplo, detectar cuándo dos identificadores son el mismo tipo de politipo, o cambiar el tipo de un grupo de identificadores de "`politipo"' a "`real"'.
+			\item lex.lex: archivo que define los patrones de los tokens devueltos por el analizador léxico generado automáticamente con la herramienta JLex.
+			\item cup.cup: archivo que define la gramática y las reglas semánticas utilizadas por el parser generado automáticamente con la herramienta CUP.
+			\item bat.bat: script de consola para Windows que se encarga de eliminar archivos anteriores, generar el analizador léxico, el parser, y recompilar el intérprete para ser ejecutado desde consola.
+			\item sh.sh: script de consola para sistemas Linux/Unix, que realiza las mismas funciones que el bat.
+		\end{itemize}
+\end{itemize}
 
 \chapter{Modo de uso}
-\$ \emph{java -jar MLOR} [inputFile],
+\$ java -jar MLOR \emph{[inputFile]},
 
-donde \emph{inputFile} es un archivo con código ml que puede ingresarse opcionalmente.  Si bien el programa no fue pensado específicamente para ser utilizado con archivos de entrada, se incluyó la opción para facilitar la corrección del intérprete por parte de la cátedra. Si efectivamente se especifica un archivo, para cada una de las expresiones que contenga, el intérprete mostrará el tipo como la cátedra solicitó. En caso de que \emph{no} se especifique ningún archivo, el intérprete mostrará un prompt para leer expresiones y funciones por pantalla, y mostrará el tipo de cada una de ellas. MLOR está pensado para ser utilizado con el prompt, por lo que al ingresar los casos de prueba directamente desde un archivo el formato de salida puede no ser el ideal.
+donde \emph{inputFile} es un archivo con código ml que puede ingresarse opcionalmente.  Si bien el programa no fue pensado específicamente para ser utilizado con archivos de entrada, se incluyó la opción para facilitar la corrección del intérprete por parte de la cátedra. Si efectivamente se especifica un archivo, para cada una de las expresiones que contenga, el intérprete mostrará el tipo como la cátedra solicitó. En caso de que {\bf no} se especifique ningún archivo, el intérprete mostrará un prompt para leer expresiones y funciones por pantalla, y mostrará el tipo de cada una de ellas. MLOR está pensado para ser utilizado con el prompt, por lo que al ingresar los casos de prueba directamente desde un archivo el formato de salida puede no ser el ideal.
 
 Para realizar una asignación se utiliza val \emph{X} = \emph{Y};, siendo \emph{X} el nombre de la variable que recibirá el resultado, e \emph{Y} la expresión que se asignará a \emph{X}. En caso de que únicamente se ingrese una expresión, ésta se ligará por defecto a la variable \emph{it}.
 
@@ -49,7 +63,7 @@ En este caso, el valor entero 5 se liga a la variable global \emph{x}.
 \begin{lstlisting}
 MLOR> 11.11
 \end{lstlisting}
-En este caso, el string mostrado se liga implícitamente a la variable glogal \emph{it}.
+En este caso, el real mostrado se liga implícitamente a la variable glogal \emph{it}.
 
 Para declarar una función, se ingresa el prefijo \emph{fun} en el intérprete seguido de los parámetros correspondientes y su expresión:
 
@@ -59,17 +73,17 @@ val f: int -> int = fn;
 MLOR> fun g x y = (f x > 10) orelse (x>y);
 val g: int -> int -> boolean = fn;
 \end{lstlisting}
-Se declaran dos funciones: \emph{f}, con parámetro \emph{x}, y \emph{g}, con parámetros \emph{x} e \emph{y}, que a su vez utiliza la función f.
+En este ejemplo se declaran dos funciones: \emph{f}, con parámetro \emph{x}, y \emph{g}, con parámetros \emph{x} e \emph{y}, que a su vez utiliza la función f.
 
-Tanto las variables globales como los identificadores de las funciones son recordados internamente en el parser en una tabla de símbolos (implementada con una tabla hash de Java). En dicha tabla se mantiene como llave el identificador, y la entrada de la tabla contiene un objeto indicando el tipo del identificador, y una lista de identificadores relacionados. Este objeto es apuntado por todos los identificadores de la lista, y se utiliza para el reconocimiento de politipos relacionados (como se mostrará en ejemplos más adelante, en la batería de tests).
+Tanto las variables globales como los identificadores de las funciones son recordados internamente en el parser en una tabla de símbolos (implementada con una tabla hash de Java). En dicha tabla se mantiene como llave el identificador, y la entrada de la tabla contiene un objeto que es instancia de la clase Attrs; a medida que los identificadores se relacionan en la expresión, pueden apuntar a la misma instancia de Attrs; por ejemplo, en una expresión como la del último ejemplo, \emph{x} e \emph{y} apuntarán a la misma instancia de Attrs. Se detalla con mayor profundidad cómo se decide el tipo de las expresiones en la sección {\bf Analizador Semántico}.
 
 \section{Requerimientos}
 
-Dada la tecnología utilizada para realizar el intérprete, será necesario contar con la máquina virtual de Java (oficialmente fue probado para la versión 1.6) para poder correr el archivo ejecutable \emph{mlinterpreter}.
+Dada la tecnología utilizada para realizar el intérprete, será necesario contar con la máquina virtual de Java (oficialmente fue probado para la versión 1.6) para poder correr el archivo ejecutable \emph{MLOR}. En caso de desear compilar manualmente el intérprete en Windows, las variables \emph{class} y \emph{classpath} deben estar correctamente seteadas.
 
 \section{Formato de salida}
 
-El formato de salida utilizado es igual al del lenguaje original ML: todas las expresiones poseen un tipo determinado, y todas las funciones poseen un dominio y un rango, que se representan mediante la notación Dominio -> Rango. Las expresiones ingresadas en el intérprete y pueden ser de tipo \emph{int}, \emph{real}, \emph{boolean}, \emph{string}, \emph{list} (que a su vez tiene un tipo asociado) y \emph{tuple} (que tiene un tipo asociado por cada uno de sus elementos). En el caso particular de las funciones, se consideran dos tipos especiales además de los mencionados: el politipo, y el politipo con igualdad. Dado que puede haber muchas instancias de politipos diferentes, los primeros se notan con un apóstrofe seguido del identificador del politipo, mientras que los segundos son precedidos por \emph{dos} apóstrofes.
+El formato de salida utilizado es igual al del lenguaje original ML: todas las expresiones poseen un tipo determinado, y todas las funciones poseen un dominio y un rango, que se representan mediante la notación Dominio -\textgreater Rango. Las expresiones ingresadas en el intérprete y pueden ser de tipo \emph{int}, \emph{real}, \emph{boolean}, \emph{string}, \emph{list} (que a su vez tiene un tipo asociado) y \emph{tuple} (que tiene un tipo asociado por cada uno de sus elementos). En el caso particular de las funciones, se consideran dos tipos especiales además de los mencionados: el politipo, y el politipo con igualdad. Dado que puede haber muchas instancias de politipos diferentes, los primeros se notan con un apóstrofe seguido del identificador del politipo, mientras que los segundos son precedidos por \emph{dos} apóstrofes.
 
 
 \begin{lstlisting}
