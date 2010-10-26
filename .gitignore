@@ -4,3 +4,11 @@ Yylex.java
 parser.java
 sym.java
 *.swp
+informe/*.aux
+informe/*.bbl
+informe/*.blg
+informe/*.log
+informe/*.out
+informe/*.toc
+informe/*.pdf
+!informe/dds.pdf
