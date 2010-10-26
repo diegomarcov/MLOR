@@ -127,6 +127,54 @@ val h: 'a -> 'b -> ('a * 'b) = fn;
 \end{lstlisting}
 Una función h que recibe dos parámetros de cualquier tipo \emph{(no necesariamente igual)}, y devuelve una tupla con estos dos elementos.
 
+
+\chapter{Analizador léxico}
+\section{Tokens}
+El Analizador Léxico reconoce los tokens especificados en la tabla \ref{tab:tokens}.
+\begin{table}[H]
+
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Token}			& \textbf{Expresión Regular} \\ \hline
+PUNTO			 					& {\ttfamily .} \\ \hline
+PTOCOMA							& {\ttfamily ;} \\ \hline
+IGUAL								& {\ttfamily =} \\ \hline
+COMA      					& {\ttfamily ,} \\ \hline
+DISTINTO	 					& {\ttfamily \textless \textgreater \ } \\ \hline
+OPREL			 					& {\ttfamily <|>|<=|>=} \\ \hline
+CONS			 					& {\ttfamily ::} \\ \hline
+OPADD 							& {\ttfamily +|-} \\ \hline
+ORELSE						 	& {\ttfamily (o|O)(r|R)(e|E)(l|L)(s|S)(e|E)} \\ \hline
+CONCAT 							& {\ttfamily \^ \ } \\ \hline
+MUL				 					& {\ttfamily *} \\ \hline
+DIVREAL						 	& {\ttfamily /} \\ \hline
+DIVINT							& {\ttfamily (d|D)(i|I)(v|V) } \\ \hline
+MOD								 	& {\ttfamily (m|M)(o|O)(d|D)} \\ \hline
+ANDALSO						 	& {\ttfamily (a|A)(n|N)(d|D)(a|A)(l|L)(s|S)(o|O)} \\ \hline
+NOT						 			& {\ttfamily (n|N)(o|O)(t|T)} \\ \hline
+MINUS					 			& {\ttfamily \~ \ } \\ \hline
+PARABRE 						& {\ttfamily (} \\ \hline
+PARCIERRA						& {\ttfamily )} \\ \hline
+CORABRE							& {\ttfamily [} \\ \hline
+CORCIERRA						& {\ttfamily ]} \\ \hline
+NIL			 						& {\ttfamily (n|N)(i|I)(l|L)} \\ \hline
+FUN				 					& {\ttfamily (f|F)(u|U)(n|N)} \\ \hline
+VAL		 							& {\ttfamily (v|V)(a|A)(l|L)} \\ \hline
+REAL 								& {\ttfamily [0-9]+.[0-9]+} \\ \hline
+INT 								& {\ttfamily [0-9]+} \\ \hline
+STRING							& {\ttfamily ``[\^\ `` \^\ \textbackslash n]*'' } \\ \hline
+ID		 							& {\ttfamily [a-z][a-z0-9]*} \\ \hline
+\end{tabular}
+\label{tab:tokens}
+\caption{Tokens}
+\end{table}
+
+\section{Palabras reservadas}
+El analizador léxico de MLOR mantiene algunas palabras reservadas que no puede ser redefinidas por el usuario para nombrar una función o un valor; dichas palabras son los operadores lógicos \emph{orelse} y \emph{andalso}, los operadores aritméticos \emph{div} y \emph{mod}, el operador unario \emph{not}, el indicador de lista vacía \emph{nil}, el prefijo de las funciones \emph{fun}, y el de los valores, \emph{val}.
+
+Nótese que \emph{true} y \emph{false} no son palabras reservadas, sino variables booleanas insertadas por defecto en la tabla de símbolos, por lo que podrían redefinirse al valor que el usuario del intérprete desee.
+
+
 \chapter{Lenguaje}
 \section{Alfabeto de entrada}
 
@@ -185,29 +233,29 @@ Nótese que \emph{true} y \emph{false} no son palabras reservadas, sino variables
 La Definición Dirigida por la Sintaxis se encuentra en el archivo ``dds.pdf''. En ella se encuentra una implementación análoga a la utilizada en el código fuente del intérprete.
 
 \section{Estructuras}
-\begin{enumerate}
+\begin{itemize}
 	\item \textbf{\texttt{Attrs}}: El conjunto de atributos de los no terminales. Mantiene el tipo de la subexpresión computada, y el conjunto de identificadores, guardadas en una lista, que referencian a dicho tipo. Además, guarda todo lo necesario para los diferentes tipos (tipo de elemento para las listas, tipo de dominio y rango para las funciones, etc,).
 	\item \textbf{Tablas de símbolos}: Se utilizaron dos tablas de símbolos, implementados con \texttt{Hashtables}, con cadenas de caracteres que contienen el identificador como llave, y Attrs como contenido. La primer tabla es la global, que es utilizada en toda la ejecución. La segunda sólo vive durante la ejecución de funciones, y se utiliza como un tabla de símbolos local.
-\end{enumerate}
+\end{itemize}
 
 \subsection{Lista de identificadores}
 La lista de identificadores de la clase \texttt{Attrs} tiene una notación particular para los casos en las que una variable la apunta indirectamente.
 
-Por ejemplo, si una variable x es de tipo \texttt{('a -> 'b)}, el objeto \texttt{Attrs} 'a tendrá que saber que es apuntado indirectamente por x, así como también 'b. Para esto, en la lista de identificadores se agrega la variable seguida por un prefijo, que indica por quién está apuntado. En el caso de los dominios de una función, el prefijo es ``-'', mientras que para el rango es ``>'', por lo que en las listas iran ``-x'' y ``>x'' respectivamente. Esta información es utilizada luego para corregir las referencias cuando el tipo es cambiado.
+Por ejemplo, si una variable x es de tipo \texttt{('a -> 'b)}, el objeto \texttt{Attrs} 'a tendrá que saber que es apuntado indirectamente por x, así como también 'b. Para esto, en la lista de identificadores se agrega la variable seguida por un prefijo, que indica por quién está apuntado. En el caso de los dominios de una función, el prefijo es ``-'', mientras que para el rango es ``\textgreater'', por lo que en las listas iran ``-x'' y ``\textgreater x'' respectivamente. Esta información es utilizada luego para corregir las referencias cuando el tipo es cambiado.
 
 Para las listas, se le agrega como prefijo ``['', y para las tuplas ``(i)'', donde \textit{i} es el índice de la referencia en la lista de tipos.
 
 \section{Métodos}
-\begin{enumerate}
-	\item \textbf{tipoMásEspecífico}: Devuelve el tipo más específico entre los dos parámetros, si es que son compatibles. En el caso de los tipos estructurados (listas, tuplas y funciones), se llama recursivamente. Este método también corrige las referencias de las variables, directa e indirectamente. 
+\begin{itemize}
+	\item \textbf{tipoMasEspecifico}: Devuelve el tipo más específico entre los dos parámetros, si es que son compatibles. En el caso de los tipos estructurados (listas, tuplas y funciones), se llama recursivamente. Este método también corrige las referencias de las variables, directa e indirectamente. 
 	
 	Los politipos pueden cambiar de tipo, por lo que se selecciona como tipo más específico el otro, y todos apuntan al segundo. En el caso de que los dos sean politipos, seguirán siéndolo, pero las variables que los apuntaban ahora apuntaran al mismo objeto.
 	\item \textbf{esTipoTextOrNum}: Devuelve si el tipo pasado es un \textit{string}, o un número.
 	\item \textbf{crearPolitipo}: Crea un objeto \texttt{Attrs} del tipo que se le pasa por parámetro, utilizando también un entero contador que lo representa unívocamente.
 	\item \textbf{obtenerTipo}: Busca primero en la tabla de símbolos local (si existe) y luego en la global el tipo del identificador pasado por parámetro.
 	\item \textbf{esTipoSimple}: Devuelve si el tipo pasado es un \textit{string}, un número, o un \textsl{boolean}.
-	
-	
-\end{enumerate}
+\end{itemize}
+
+
 
 \end{document}
