@@ -11,4 +11,4 @@ informe/*.log
 informe/*.out
 informe/*.toc
 informe/*.pdf
-!informe/tablor.pdf
+!informe/dds.pdf
