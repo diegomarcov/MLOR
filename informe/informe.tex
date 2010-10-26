@@ -32,13 +32,13 @@ Este proyecto consiste en la implementación de un intérprete de un subconjunto d
 \section*{Archivos entregados}
 El proyecto está estructurado en tres carpetas:
 \begin{itemize}
-	\item /Casos de Test: incluye diversos archivos de test (válidos, inválidos, y con bugs).
-	\item /doc: incluye los pdf con la documentación del proyecto.
+	\item /bin: incluye un jar ejecutable con el intérprete, y diversos archivos de test.
+	\item /doc: incluye el pdf con la documentación del proyecto.
 	\item /src: incluye todos los archivos necesarios para compilar el proyecto:
 		\begin{itemize}
 			\item /JLex: carpeta que contiene todos los archivos propios de la herramienta JLex.
 			\item /java\_cup: carpeta que contiene todos los archivos propios de la herramienta CUP.
-			\item Attrs.java: clase auxiliar definida para guardar los datos de los no-terminales en la gramática; a grandes rasgos, para cada no-terminal se recuerda el tipo de la expresión que sintetiza, y una lista de \emph{related-ids}; cada identificador que apunta a este objeto en la tabla de símbolos es indicado a su vez en esta lista, lo que permite, por ejemplo, detectar cuándo dos identificadores son el mismo tipo de politipo, o cambiar el tipo de un grupo de identificadores de "`politipo"' a "`real"'.
+			\item Attrs.java: clase auxiliar definida para guardar los datos de los no-terminales en la gramática; a grandes rasgos, para cada no-terminal se recuerda el tipo de la expresión que sintetiza, y una lista de \emph{related-ids}; cada identificador que apunta a este objeto en la tabla de símbolos es indicado a su vez en esta lista, lo que permite, por ejemplo, detectar cuándo dos identificadores son el mismo tipo de politipo, o cambiar el tipo de un grupo de identificadores de ``politipo'' a ``real''.
 			\item lex.lex: archivo que define los patrones de los tokens devueltos por el analizador léxico generado automáticamente con la herramienta JLex.
 			\item cup.cup: archivo que define la gramática y las reglas semánticas utilizadas por el parser generado automáticamente con la herramienta CUP.
 			\item bat.bat: script de consola para Windows que se encarga de eliminar archivos anteriores, generar el analizador léxico, el parser, y recompilar el intérprete para ser ejecutado desde consola.
@@ -47,7 +47,7 @@ El proyecto está estructurado en tres carpetas:
 \end{itemize}
 
 \chapter{Modo de uso}
-\$ java MLOR \emph{[inputFile]},
+\$ java -jar MLOR \emph{[inputFile]},
 
 donde \emph{inputFile} es un archivo con código ml que puede ingresarse opcionalmente.  Si bien el programa no fue pensado específicamente para ser utilizado con archivos de entrada, se incluyó la opción para facilitar la corrección del intérprete por parte de la cátedra. Si efectivamente se especifica un archivo, para cada una de las expresiones que contenga, el intérprete mostrará el tipo como la cátedra solicitó. En caso de que {\bf no} se especifique ningún archivo, el intérprete mostrará un prompt para leer expresiones y funciones por pantalla, y mostrará el tipo de cada una de ellas. MLOR está pensado para ser utilizado con el prompt, por lo que al ingresar los casos de prueba directamente desde un archivo el formato de salida puede no ser el ideal.
 
@@ -559,7 +559,7 @@ Existen casos en los que el intérprete no se comporta exactamente como lo haría 
 MLOR> fun f x = x [x];
 val f: ('a list -> 'b) -> 'b = fn;
 \end{lstlisting}
-En este caso, el intérprete original de ML indica un conflicto: "`Circular type results from unifying 'a and 'a list -> 'b"'. Sin embargo, en MLOR no realizamos detección de aplicaciones circulares en funciones, por lo que este caso da una respuesta errónea.
+En este caso, el intérprete original de ML indica un conflicto: \verb|`Circular type results from unifying 'a and 'a list -> 'b"'|. Sin embargo, en MLOR no realizamos detección de aplicaciones circulares en funciones, por lo que este caso da una respuesta errónea.
 
 Por otro lado, MLOR puede presentar algunos problemas en las aplicaciones parciales de funciones con parámetros politipo a los que se les instancia un tipo estructurado complejo. Por ejemplo:
 
@@ -570,7 +570,14 @@ MLOR> fun g x = h (x, [1,2,3,4]);
 val g: ('a * int list) -> 'b -> ('c * 'b) = fn;
 \end{lstlisting}
 
-El tipo de la función g debería ser: 'a -> 'b -> (('a * int list) * 'b) = fn
+El tipo de la función g debería ser: \verb|'a -> 'b -> (('a * int list) * 'b) = fn|.
 
+Por último, se presentan problemas con expresiones del tipo:
 
+\begin{lstlisting}
+MLOR> fun f x y = x [y] + y;
+val f: ('a list -> int) -> int -> int = fn;
+\end{lstlisting}
+
+En el ML original, el politipo es cambiado a un entero.
 \end{document}
